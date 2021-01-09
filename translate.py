@@ -1,18 +1,19 @@
 import argparse
 import time
 import torch
-from Models import get_model
+from Models import Transformer
 import torch.nn.functional as F
 from Optim import CosineWithRestarts
 from Batch import create_masks
 import pdb
 import joblib as pickle
 import argparse
-from Models import get_model
+from Models import init_model
 from Beam import beam_search
 from nltk.corpus import wordnet
 from torch.autograd import Variable
 import re
+from vocabulary import Vocabulary
 
 def get_synonym(word, SRC):
     syns = wordnet.synsets(word)
@@ -61,23 +62,27 @@ def translate(opt, model, SRC, TRG):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-k', type=int, default=3)
-    parser.add_argument('-max_len', type=int, default=80)
+    parser.add_argument('-beam_size', type=int, default=3)
+    parser.add_argument('-max_len', type=int, default=50)
     parser.add_argument('-no_cuda', action='store_true')
 
     opt = parser.parse_args()
 
     opt.device = 'cpu' if opt.no_cuda is False else 'cuda'
+    opt.load_weights = True
 
-    assert opt.k > 0
+    assert opt.beam_size > 0
     assert opt.max_len > 10
 
-    SRC = pickle.load('models/SRC.pkl')
-    TRG = pickle.load('models/TRG.pkl')
+    checkpoint = torch.load('models/checkpoint.chkpt')
+    settings = checkpoint['settings']
 
-    checkpoint = pickle.load('models/checkpoint.chkpt')
+    vocab = pickle.load('models/vocab.pkl')
+    src_vocab = vocab['src']
+    trg_vocab = vocab['trg']
 
-    model = get_model(checkpoint['settings'], len(SRC.vocab), len(TRG.vocab))
+    model = Transformer(src_vocab.vocab_size, trg_vocab.vocab_size, settings.d_model,
+                        settings.n_layers, settings.heads, settings.dropout)
     
     while True:
         opt.text =input("Enter a sentence to translate (type 'f' to load from file, or 'q' to quit):\n")
@@ -90,7 +95,7 @@ def main():
             except:
                 print("error opening or reading text file")
                 continue
-        phrase = translate(opt, model, SRC, TRG)
+        phrase = translate(opt, model, src_vocab, trg_vocab)
         print('> '+ phrase + '\n')
 
 if __name__ == '__main__':

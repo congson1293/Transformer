@@ -20,16 +20,16 @@ def init_vars(src, model, SRC, TRG, opt):
     e_output, src_mask, trg_mask))
     out = F.softmax(out, dim=-1)
     
-    probs, ix = out[:, -1].data.topk(opt.k)
+    probs, ix = out[:, -1].data.topk(opt.beam_size)
     log_scores = torch.Tensor([math.log(prob) for prob in probs.data[0]]).unsqueeze(0)
     
-    outputs = torch.zeros(opt.k, opt.max_len).long()
+    outputs = torch.zeros(opt.beam_size, opt.max_len).long()
     if opt.device == 0:
         outputs = outputs.cuda()
     outputs[:, 0] = init_tok
     outputs[:, 1] = ix[0]
     
-    e_outputs = torch.zeros(opt.k, e_output.size(-2),e_output.size(-1))
+    e_outputs = torch.zeros(opt.beam_size, e_output.size(-2),e_output.size(-1))
     if opt.device == 0:
         e_outputs = e_outputs.cuda()
     e_outputs[:, :] = e_output[0]
@@ -68,7 +68,7 @@ def beam_search(src, model, SRC, TRG, opt):
 
         out = F.softmax(out, dim=-1)
     
-        outputs, log_scores = k_best_outputs(outputs, out, log_scores, i, opt.k)
+        outputs, log_scores = k_best_outputs(outputs, out, log_scores, i, opt.beam_size)
         
         ones = (outputs==eos_tok).nonzero() # Occurrences of end symbols for all input sentences.
         sentence_lengths = torch.zeros(len(outputs), dtype=torch.long).cuda()
@@ -79,7 +79,7 @@ def beam_search(src, model, SRC, TRG, opt):
 
         num_finished_sentences = len([s for s in sentence_lengths if s > 0])
 
-        if num_finished_sentences == opt.k:
+        if num_finished_sentences == opt.beam_size:
             alpha = 0.7
             div = 1/(sentence_lengths.type_as(log_scores)**alpha)
             _, ind = torch.max(log_scores * div, 1)

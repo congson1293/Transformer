@@ -53,21 +53,17 @@ class Transformer(nn.Module):
         output = F.log_softmax(output, dim=2)
         return output
 
-def get_model(opt, src_vocab_size, trg_vocab_size):
+def init_model(opt, src_vocab_size, trg_vocab_size):
     
     assert opt.d_model % opt.heads == 0
     assert opt.dropout < 1
 
     model = Transformer(src_vocab_size, trg_vocab_size, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
-       
-    if opt.load_weights:
-        print("loading pretrained weights...")
-        model.load_state_dict(torch.load(f'{opt.load_weights}/model_weights'))
-    else:
-        for p in model.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p) 
-    
+
+    for p in model.parameters():
+        if p.dim() > 1:
+            nn.init.xavier_uniform_(p)
+
     if opt.device == 'cuda':
         model = model.cuda()
     
