@@ -5,11 +5,10 @@ from torch.autograd import Variable
 
 
 def nopeak_mask(size, opt):
-    np_mask = np.triu(np.ones((1, size, size)),
-    k=1).astype('uint8')
+    np_mask = np.triu(np.ones((1, size, size)), k=1).astype('uint8')
     np_mask =  Variable(torch.from_numpy(np_mask) == 0)
-    if opt.device == 0:
-      np_mask = np_mask.cuda()
+    if opt.device == 'cuda':
+        np_mask = np_mask.cuda()
     return np_mask
 
 def create_masks(src, trg, opt):
