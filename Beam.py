@@ -4,10 +4,10 @@ import torch.nn.functional as F
 import math
 
 
-def init_vars(src, model, SRC, TRG, opt):
+def init_vars(src, model, src_vocab, trg_vocab, opt):
     
-    init_tok = TRG.vocab.stoi['<sos>']
-    src_mask = (src != SRC.vocab.stoi['<pad>']).unsqueeze(-2)
+    init_tok = trg_vocab.bos_token
+    src_mask = (src != src_vocab.pad_idx).unsqueeze(-2)
     e_output = model.encoder(src, src_mask)
     
     outputs = torch.LongTensor([[init_tok]])
@@ -52,12 +52,12 @@ def k_best_outputs(outputs, out, log_scores, i, k):
     
     return outputs, log_scores
 
-def beam_search(src, model, SRC, TRG, opt):
+def beam_search(src, model, src_vocab, trg_vocab, opt):
     
-
-    outputs, e_outputs, log_scores = init_vars(src, model, SRC, TRG, opt)
-    eos_tok = TRG.vocab.stoi['<eos>']
-    src_mask = (src != SRC.vocab.stoi['<pad>']).unsqueeze(-2)
+    model.eval()
+    outputs, e_outputs, log_scores = init_vars(src, model, src_vocab, trg_vocab, opt)
+    eos_tok = trg_vocab.eos_idx
+    src_mask = (src != src_vocab.pad_idx).unsqueeze(-2)
     ind = None
     for i in range(2, opt.max_len):
     
@@ -88,8 +88,8 @@ def beam_search(src, model, SRC, TRG, opt):
     
     if ind is None:
         length = (outputs[0]==eos_tok).nonzero()[0]
-        return ' '.join([TRG.vocab.itos[tok] for tok in outputs[0][1:length]])
+        return ' '.join([trg_vocab.itos[tok] for tok in outputs[0][1:length]])
     
     else:
         length = (outputs[ind]==eos_tok).nonzero()[0]
-        return ' '.join([TRG.vocab.itos[tok] for tok in outputs[ind][1:length]])
+        return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length]])

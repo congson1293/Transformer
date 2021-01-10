@@ -13,48 +13,57 @@ from Beam import beam_search
 from nltk.corpus import wordnet
 from torch.autograd import Variable
 import re
+import spacy
 from vocabulary import Vocabulary
 
-def get_synonym(word, SRC):
-    syns = wordnet.synsets(word)
-    for s in syns:
-        for l in s.lemmas():
-            if SRC.vocab.stoi[l.name()] != 0:
-                return SRC.vocab.stoi[l.name()]
-            
-    return 0
+
+src_lang_model = spacy.load('de')
 
 def multiple_replace(dict, text):
   # Create a regular expression  from the dictionary keys
   regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
 
   # For each match, look-up corresponding value in dictionary
-  return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text) 
+  return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
 
-def translate_sentence(sentence, model, opt, SRC, TRG):
-    
-    model.eval()
-    indexed = []
-    sentence = SRC.preprocess(sentence)
-    for tok in sentence:
-        if SRC.vocab.stoi[tok] != 0:
-            indexed.append(SRC.vocab.stoi[tok])
-        else:
-            indexed.append(get_synonym(tok, SRC))
-    sentence = Variable(torch.LongTensor([indexed]))
+def remove_punc(sen):
+    result = re.sub('[,.!;:\"\'?<>{}\[\]()]', '', sen)
+    return result
+
+def preprocess_input(s):
+    global src_lang_model
+    sen = src_lang_model.tokenizer(s.strip()).text
+    sen = remove_punc(sen)
+    return sen
+
+def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
+
+    sentence = preprocess_input(sentence)
+    words = sentence.split()
+    indices = [src_vocab.bos_idx]
+    for i, w in enumerate(words):
+        if i+1 == opt.max_len:
+            break
+        try:
+            idx = src_vocab.stoi[w.lower()]
+        except:
+            idx = src_vocab.unk_idx
+        indices.append(idx)
+    indices.append(src_vocab.eos_idx)
+    sentence = Variable(torch.LongTensor([indices]))
     if opt.device == 'cuda':
         sentence = sentence.cuda()
     
-    sentence = beam_search(sentence, model, SRC, TRG, opt)
+    sentence = beam_search(sentence, model, src_vocab, trg_vocab, opt)
 
     return  multiple_replace({' ?' : '?',' !':'!',' .':'.','\' ':'\'',' ,':','}, sentence)
 
-def translate(opt, model, SRC, TRG):
-    sentences = opt.text.lower().split('.')
+def translate(text, opt, model, src_vocab, trb_vocab):
+    sentences = text.lower().split('.')
     translated = []
 
     for sentence in sentences:
-        translated.append(translate_sentence(sentence + '.', model, opt, SRC, TRG).capitalize())
+        translated.append(translate_sentence(sentence, model, opt, src_vocab, trb_vocab).capitalize())
 
     return (' '.join(translated))
 
@@ -68,7 +77,7 @@ def main():
 
     opt = parser.parse_args()
 
-    opt.device = 'cpu' if opt.no_cuda is False else 'cuda'
+    opt.device = 'cuda' if opt.no_cuda is False else 'cpu'
     opt.load_weights = True
 
     assert opt.beam_size > 0
@@ -85,17 +94,10 @@ def main():
                         settings.n_layers, settings.heads, settings.dropout)
     
     while True:
-        opt.text =input("Enter a sentence to translate (type 'f' to load from file, or 'q' to quit):\n")
-        if opt.text=="q":
+        text = input("Enter a sentence to translate (type 'q' to quit):\n")
+        if text=="q":
             break
-        if opt.text=='f':
-            fpath =input("Enter a sentence to translate (type 'f' to load from file, or 'q' to quit):\n")
-            try:
-                opt.text = ' '.join(open(opt.text, encoding='utf-8').read().split('\n'))
-            except:
-                print("error opening or reading text file")
-                continue
-        phrase = translate(opt, model, src_vocab, trg_vocab)
+        phrase = translate(text, opt, model, src_vocab, trg_vocab)
         print('> '+ phrase + '\n')
 
 if __name__ == '__main__':
