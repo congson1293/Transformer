@@ -50,7 +50,7 @@ class Transformer(nn.Module):
         #print("DECODER")
         d_output = self.decoder(trg, e_outputs, src_mask, trg_mask)
         output = self.out(d_output)
-        output = F.log_softmax(output, dim=2)
+        output = F.log_softmax(output, dim=-1)
         return output
 
 def init_model(opt, src_vocab_size, trg_vocab_size):

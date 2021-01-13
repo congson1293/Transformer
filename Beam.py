@@ -4,9 +4,12 @@ import torch.nn.functional as F
 import math
 
 
+def nonzero(t, v):
+    pass
+
 def init_vars(src, model, src_vocab, trg_vocab, opt):
     
-    init_tok = trg_vocab.bos_token
+    init_tok = trg_vocab.bos_idx
     src_mask = (src != src_vocab.pad_idx).unsqueeze(-2)
     e_output = model.encoder(src, src_mask)
     
@@ -16,9 +19,7 @@ def init_vars(src, model, src_vocab, trg_vocab, opt):
     
     trg_mask = nopeak_mask(1, opt)
     
-    out = model.out(model.decoder(outputs,
-    e_output, src_mask, trg_mask))
-    out = F.softmax(out, dim=-1)
+    out = model.out(model.decoder(outputs, e_output, src_mask, trg_mask))
     
     probs, ix = out[:, -1].data.topk(opt.beam_size)
     log_scores = torch.Tensor([math.log(prob) for prob in probs.data[0]]).unsqueeze(0)
@@ -63,18 +64,19 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
     
         trg_mask = nopeak_mask(i, opt)
 
-        out = model.out(model.decoder(outputs[:,:i],
-        e_outputs, src_mask, trg_mask))
-
-        out = F.softmax(out, dim=-1)
+        out = model.out(model.decoder(outputs[:,:i], e_outputs, src_mask, trg_mask))
     
         outputs, log_scores = k_best_outputs(outputs, out, log_scores, i, opt.beam_size)
-        
-        ones = (outputs==eos_tok).nonzero() # Occurrences of end symbols for all input sentences.
-        sentence_lengths = torch.zeros(len(outputs), dtype=torch.long).cuda()
+        ones = (outputs==eos_tok).nonzero(as_tuple=True) # Occurrences of end symbols for all input sentences.
+        x, y = ones
+        ones = list(zip(x.detach().cpu().numpy(), y.detach().cpu().numpy()))
+        if opt.device == 'cuda':
+            sentence_lengths = torch.zeros(len(outputs), dtype=torch.long).cuda()
+        else:
+            sentence_lengths = torch.zeros(len(outputs), dtype=torch.long)
         for vec in ones:
             i = vec[0]
-            if sentence_lengths[i]==0: # First end symbol has not been found yet
+            if sentence_lengths[i] == 0: # First end symbol has not been found yet
                 sentence_lengths[i] = vec[1] # Position of first end symbol
 
         num_finished_sentences = len([s for s in sentence_lengths if s > 0])
@@ -87,9 +89,14 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
             break
     
     if ind is None:
-        length = (outputs[0]==eos_tok).nonzero()[0]
-        return ' '.join([trg_vocab.itos[tok] for tok in outputs[0][1:length]])
+        length = (outputs[0]==eos_tok).nonzero(as_tuple=True)
+        outputs = outputs.detach().cpu().numpy()
+        try:
+            return ' '.join([trg_vocab.itos[tok] for tok in outputs[0][1:length]])
+        except:
+            return ' '.join([trg_vocab.itos[tok] for tok in outputs[0][1:]])
     
     else:
-        length = (outputs[ind]==eos_tok).nonzero()[0]
+        length = (outputs[ind]==eos_tok).nonzero(as_tuple=True)
+        outputs = outputs.detach().cpu().numpy()
         return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length]])

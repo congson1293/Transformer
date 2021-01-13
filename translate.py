@@ -94,7 +94,8 @@ def main():
                         settings.n_layers, settings.heads, settings.dropout)
     
     while True:
-        text = input("Enter a sentence to translate (type 'q' to quit):\n")
+        # text = input("Enter a sentence to translate (type 'q' to quit):\n")
+        text = 'Leute Reparieren das Dach eines Hauses.'
         if text=="q":
             break
         phrase = translate(text, opt, model, src_vocab, trg_vocab)
