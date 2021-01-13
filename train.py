@@ -32,8 +32,13 @@ def train_epoch(model, optimizer, train_data, opt, epoch, start_time):
 
     for i, batch in enumerate(train_data):
 
-        src = batch[0]
-        trg = batch[1]
+        if opt.device == 'cuda':
+            src = batch[0].cuda()
+            trg = batch[1].cuda()
+        else:
+            src = batch[0]
+            trg = batch[1]
+
         trg_input = trg[:, :-1]
         trg_output = trg[:, 1:].contiguous().view(-1)
 
