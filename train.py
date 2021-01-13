@@ -32,12 +32,8 @@ def train_epoch(model, optimizer, train_data, opt, epoch, start_time):
 
     for i, batch in enumerate(train_data):
 
-        if opt.device == 'cuda':
-            src = batch[0].cuda()
-            trg = batch[1].cuda()
-        else:
-            src = batch[0]
-            trg = batch[1]
+        src = batch[0].to(opt.device)
+        trg = batch[1].to(opt.device)
 
         trg_input = trg[:, :-1]
         trg_output = trg[:, 1:].contiguous().view(-1)
@@ -77,12 +73,9 @@ def eval_epoch(model, valid_data, opt):
     with torch.no_grad():
         for i, batch in enumerate(valid_data):
 
-            if opt.device == 'cuda':
-                src = batch[0].cuda()
-                trg = batch[1].cuda()
-            else:
-                src = batch[0]
-                trg = batch[1]
+            src = batch[0].to(opt.device)
+            trg = batch[1].to(opt.device)
+
             trg_input = trg[:, :-1]
             trg_output = trg[:, 1:].contiguous().view(-1)
 
@@ -106,14 +99,12 @@ def train(model, optimizer, train_data, valid_data, opt):
     start = time.time()
 
     utils.mkdir('models')
-                 
+
+    n_patience, pre_valid_loss, best_valid_acc = 0, 0, 0
+
     for epoch in range(opt.epochs):
 
         total_train_loss, n_word_total, n_word_correct = train_epoch(model, optimizer, train_data, opt, epoch, start)
-
-        checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict(),
-                      'optimizer': optimizer}
-        torch.save(checkpoint, 'models/checkpoint.chkpt')
 
         train_accuracy = n_word_correct / n_word_total
         avg_train_loss = total_train_loss / len(train_data)
@@ -122,9 +113,26 @@ def train(model, optimizer, train_data, valid_data, opt):
         valid_accuracy = n_word_correct / n_word_total
         avg_valid_loss = total_valid_loss / len(valid_data)
 
+        if valid_accuracy > best_valid_acc:
+            best_valid_acc = valid_accuracy
+            checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict(),
+                          'optimizer': optimizer, 'best_model': model.state_dict()}
+        else:
+            checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict(),
+                          'optimizer': optimizer}
+        torch.save(checkpoint, 'models/checkpoint.chkpt')
+
+        if avg_valid_loss >= pre_valid_loss:
+            n_patience += 1
+        pre_valid_loss = avg_valid_loss
+
         print("   %dm: epoch %d [%s%s]  %d%%\ntrain_loss = %.3f  train_acc=%.3f\nvalid_loss = %.3f  valid_acc = %.3f" %\
         ((time.time() - start)//60, epoch + 1, "".join('#'*(100//5)), "".join(' '*(20-(100//5))), 100,
          avg_train_loss, train_accuracy, avg_valid_loss, valid_accuracy))
+
+        if n_patience >= opt.patience:
+            print('early stopping ...')
+            break
 
 def main():
 
@@ -137,10 +145,11 @@ def main():
     parser.add_argument('-heads', type=int, default=8)
     parser.add_argument('-dropout', type=int, default=0.1)
     parser.add_argument('-batch_size', type=int, default=1500)
-    parser.add_argument('-print_every', type=int, default=100)
+    parser.add_argument('-print_every', type=int, default=10)
     parser.add_argument('-lr', type=float, default=0.0001)
     parser.add_argument('-create_valset', action='store_true')
     parser.add_argument('-max_strlen', type=int, default=50)
+    parser.add_argument('-patience', type=int, default=3)
 
     opt = parser.parse_args()
     
