@@ -77,8 +77,12 @@ def eval_epoch(model, valid_data, opt):
     with torch.no_grad():
         for i, batch in enumerate(valid_data):
 
-            src = batch[0]
-            trg = batch[1]
+            if opt.device == 'cuda':
+                src = batch[0].cuda()
+                trg = batch[1].cuda()
+            else:
+                src = batch[0]
+                trg = batch[1]
             trg_input = trg[:, :-1]
             trg_output = trg[:, 1:].contiguous().view(-1)
 
