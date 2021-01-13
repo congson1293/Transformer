@@ -122,7 +122,7 @@ def train(model, optimizer, train_data, valid_data, opt):
         valid_accuracy = n_word_correct / n_word_total
         avg_valid_loss = total_valid_loss / len(valid_data)
 
-        print("%dm: epoch %d [%s%s]  %d%%  train_loss = %.3f  train_acc=%.3f\nvalid_loss = %.3f  valid_acc = %.3f" %\
+        print("%dm: epoch %d [%s%s]  %d%%\ntrain_loss = %.3f  train_acc=%.3f\nvalid_loss = %.3f  valid_acc = %.3f" %\
         ((time.time() - start)//60, epoch + 1, "".join('#'*(100//5)), "".join(' '*(20-(100//5))), 100,
          avg_train_loss, train_accuracy, avg_valid_loss, valid_accuracy))
 
