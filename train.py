@@ -134,6 +134,13 @@ def train(model, optimizer, train_data, valid_data, opt):
             print('early stopping ...')
             break
 
+def test(model, test_data, opt):
+    total_loss, n_word_total, n_word_correct = eval_epoch(model, test_data, opt)
+    acc = n_word_correct / n_word_total
+    avg_loss = total_loss / len(test_data)
+    print('train_loss = %.3f  train_acc=%.3f' % (acc, avg_loss))
+
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -169,7 +176,7 @@ def main():
     opt.src_pad = vocab_src.pad_idx
     opt.trg_pad = vocab_trg.pad_idx
 
-    train_data_loader, valid_data_loader = prepare_dataloaders(opt, data)
+    train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
     model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
@@ -177,6 +184,8 @@ def main():
         opt.sched = CosineWithRestarts(optimizer, T_max=len(train_data_loader))
 
     train(model, optimizer, train_data_loader, valid_data_loader, opt)
+
+    test(model, test_data_loader, opt)
 
 
 def prepare_dataloaders(opt, data):
@@ -190,18 +199,24 @@ def prepare_dataloaders(opt, data):
 
     train_inputs = torch.tensor(data['train']['src'])
     valid_inputs = torch.tensor(data['valid']['src'])
+    test_inputs = torch.tensor(data['test']['src'])
+
     train_outputs = torch.tensor(data['train']['trg'])
     valid_outputs = torch.tensor(data['valid']['trg'])
+    test_outputs = torch.tensor(data['test']['trg'])
 
     train_data = TensorDataset(train_inputs, train_outputs)
     train_sampler = RandomSampler(train_data)
     train_data_loader = DataLoader(train_data, sampler=train_sampler, batch_size=batch_size)
 
     valid_data = TensorDataset(valid_inputs, valid_outputs)
-    train_sampler = SequentialSampler(valid_data)
-    valid_data_loader = DataLoader(train_data, sampler=train_sampler, batch_size=batch_size)
+    valid_sampler = SequentialSampler(valid_data)
+    valid_data_loader = DataLoader(valid_data, sampler=valid_sampler, batch_size=batch_size)
 
-    return train_data_loader, valid_data_loader
+    test_data = TensorDataset(test_inputs, test_outputs)
+    test_data_loader = DataLoader(test_data, sampler=valid_sampler, batch_size=batch_size)
+
+    return train_data_loader, valid_data_loader, test_data_loader
 
 
 
