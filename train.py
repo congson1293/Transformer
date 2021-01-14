@@ -131,10 +131,11 @@ def train(model, optimizer, train_data, valid_data, opt):
          avg_train_loss, train_accuracy, avg_valid_loss, valid_accuracy))
 
         if n_patience >= opt.patience:
-            print('early stopping ...')
+            print('early stopping...')
             break
 
 def test(model, test_data, opt):
+    print('testing...')
     total_loss, n_word_total, n_word_correct = eval_epoch(model, test_data, opt)
     acc = n_word_correct / n_word_total
     avg_loss = total_loss / len(test_data)
@@ -214,7 +215,7 @@ def prepare_dataloaders(opt, data):
     valid_data_loader = DataLoader(valid_data, sampler=valid_sampler, batch_size=batch_size)
 
     test_data = TensorDataset(test_inputs, test_outputs)
-    test_data_loader = DataLoader(test_data, sampler=valid_sampler, batch_size=batch_size)
+    test_data_loader = DataLoader(test_data, batch_size=batch_size)
 
     return train_data_loader, valid_data_loader, test_data_loader
 
