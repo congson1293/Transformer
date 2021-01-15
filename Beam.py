@@ -80,7 +80,9 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
             _, ind = torch.max(log_scores * div, 1)
             ind = ind.data[0]
             break
-    
+
+    pad_token = trg_vocab.pad_idx
+
     if ind is None:
         length = (outputs[0]==eos_tok).nonzero(as_tuple=True)
         outputs = outputs.detach().cpu().numpy()
@@ -92,4 +94,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
     else:
         length = (outputs[ind]==eos_tok).nonzero(as_tuple=True)
         outputs = outputs.detach().cpu().numpy()
-        return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length]])
+        try:
+            return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length] if tok != pad_token])
+        except:
+            return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:] if tok != pad_token])

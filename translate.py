@@ -1,16 +1,8 @@
-import argparse
-import time
 import torch
 from Models import Transformer
-import torch.nn.functional as F
-from Optim import CosineWithRestarts
-from Batch import create_masks
-import pdb
 import joblib as pickle
 import argparse
-from Models import init_model
 from Beam import beam_search
-from nltk.corpus import wordnet
 from torch.autograd import Variable
 import re
 import spacy
@@ -59,6 +51,7 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
 
 def translate(text, opt, model, src_vocab, trb_vocab):
     sentences = text.lower().split('.')
+    sentences = list(filter(lambda s: len(s) > 0, sentences))
     translated = []
 
     for sentence in sentences:
@@ -82,7 +75,7 @@ def main():
     assert opt.beam_size > 0
     assert opt.max_len > 10
 
-    checkpoint = torch.load('models/checkpoint.chkpt')
+    checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
     settings = checkpoint['settings']
 
     vocab = pickle.load('models/vocab.pkl')
@@ -91,14 +84,12 @@ def main():
 
     model = Transformer(src_vocab.vocab_size, trg_vocab.vocab_size, settings.d_model,
                         settings.n_layers, settings.heads, settings.dropout)
-    
-    while True:
-        # text = input("Enter a sentence to translate (type 'q' to quit):\n")
-        text = 'Leute Reparieren das Dach eines Hauses.'
-        if text=="q":
-            break
-        phrase = translate(text, opt, model, src_vocab, trg_vocab)
-        print('> '+ phrase + '\n')
+    model.load_state_dict(checkpoint['model'])
+
+    # text = input("Enter a sentence to translate (type 'q' to quit):\n")
+    text = 'Mehrere Männer mit Schutzhelmen bedienen ein Antriebsradsystem.'
+    phrase = translate(text, opt, model, src_vocab, trg_vocab)
+    print('> '+ phrase + '\n')
 
 if __name__ == '__main__':
     main()
