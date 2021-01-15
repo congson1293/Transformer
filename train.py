@@ -122,7 +122,7 @@ def train(model, optimizer, train_data, valid_data, opt):
                           'optimizer': optimizer}
         torch.save(checkpoint, 'models/checkpoint.chkpt')
 
-        if avg_valid_loss >= pre_valid_loss:
+        if opt.patience > 0 and avg_valid_loss >= pre_valid_loss:
             n_patience += 1
         pre_valid_loss = avg_valid_loss
 
@@ -130,7 +130,7 @@ def train(model, optimizer, train_data, valid_data, opt):
         ((time.time() - start)//60, epoch + 1, "".join('#'*(100//5)), "".join(' '*(20-(100//5))), 100,
          avg_train_loss, train_accuracy, avg_valid_loss, valid_accuracy))
 
-        if n_patience >= opt.patience:
+        if opt.patience > 0 and n_patience >= opt.patience:
             print('early stopping...')
             break
 
