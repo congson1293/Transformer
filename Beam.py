@@ -1,6 +1,5 @@
 import torch
 from Batch import nopeak_mask
-import torch.nn.functional as F
 import math
 
 
@@ -10,29 +9,25 @@ def nonzero(t, v):
 def init_vars(src, model, src_vocab, trg_vocab, opt):
     
     init_tok = trg_vocab.bos_idx
-    src_mask = (src != src_vocab.pad_idx).unsqueeze(-2)
+    src_mask = (src != src_vocab.pad_idx).unsqueeze(-2).to(opt.device)
     e_output = model.encoder(src, src_mask)
     
-    outputs = torch.LongTensor([[init_tok]])
-    if opt.device == 'cuda':
-        outputs = outputs.cuda()
+    outputs = torch.LongTensor([[init_tok]]).to(opt.device)
     
-    trg_mask = nopeak_mask(1, opt)
+    trg_mask = nopeak_mask(1, opt).to(opt.device)
     
     out = model.out(model.decoder(outputs, e_output, src_mask, trg_mask))
     
     probs, ix = out[:, -1].data.topk(opt.beam_size)
     log_scores = torch.Tensor([math.log(prob) for prob in probs.data[0]]).unsqueeze(0)
     
-    outputs = torch.zeros(opt.beam_size, opt.max_len).long()
-    if opt.device == 'cuda':
-        outputs = outputs.cuda()
+    outputs = torch.zeros(opt.beam_size, opt.max_len).long().to(opt.device)
+    outputs = outputs.to(opt.device)
     outputs[:, 0] = init_tok
     outputs[:, 1] = ix[0]
     
     e_outputs = torch.zeros(opt.beam_size, e_output.size(-2),e_output.size(-1))
-    if opt.device == 'cuda':
-        e_outputs = e_outputs.cuda()
+    e_outputs = e_outputs.to(opt.device)
     e_outputs[:, :] = e_output[0]
     
     return outputs, e_outputs, log_scores
@@ -70,10 +65,8 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
         ones = (outputs==eos_tok).nonzero(as_tuple=True) # Occurrences of end symbols for all input sentences.
         x, y = ones
         ones = list(zip(x.detach().cpu().numpy(), y.detach().cpu().numpy()))
-        if opt.device == 'cuda':
-            sentence_lengths = torch.zeros(len(outputs), dtype=torch.long).cuda()
-        else:
-            sentence_lengths = torch.zeros(len(outputs), dtype=torch.long)
+        sentence_lengths = torch.zeros(len(outputs), dtype=torch.long).to(opt.device)
+
         for vec in ones:
             i = vec[0]
             if sentence_lengths[i] == 0: # First end symbol has not been found yet

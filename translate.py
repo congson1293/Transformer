@@ -51,8 +51,7 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
         indices.append(idx)
     indices.append(src_vocab.eos_idx)
     sentence = Variable(torch.LongTensor([indices]))
-    if opt.device == 'cuda':
-        sentence = sentence.cuda()
+    sentence = sentence.to(opt.device)
     
     sentence = beam_search(sentence, model, src_vocab, trg_vocab, opt)
 
