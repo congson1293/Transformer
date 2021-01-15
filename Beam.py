@@ -62,7 +62,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
         out = model.out(model.decoder(outputs[:,:i], e_outputs, src_mask, trg_mask))
     
         outputs, log_scores = k_best_outputs(outputs, out, log_scores, i, opt.beam_size)
-        ones = (outputs==eos_tok).nonzero(as_tuple=True) # Occurrences of end symbols for all input sentences.
+        ones = (outputs == eos_tok).nonzero(as_tuple=True) # Occurrences of end symbols for all input sentences.
         x, y = ones
         ones = list(zip(x.detach().cpu().numpy(), y.detach().cpu().numpy()))
         sentence_lengths = torch.zeros(len(outputs), dtype=torch.long).to(opt.device)
@@ -84,7 +84,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
     pad_token = trg_vocab.pad_idx
 
     if ind is None:
-        length = (outputs[0]==eos_tok).nonzero(as_tuple=True)
+        length = (outputs[0] == eos_tok).nonzero(as_tuple=True)[0]
         outputs = outputs.detach().cpu().numpy()
         try:
             return ' '.join([trg_vocab.itos[tok] for tok in outputs[0][1:length]])
@@ -92,7 +92,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
             return ' '.join([trg_vocab.itos[tok] for tok in outputs[0][1:]])
     
     else:
-        length = (outputs[ind]==eos_tok).nonzero(as_tuple=True)
+        length = (outputs[ind] == eos_tok).nonzero(as_tuple=True)[0]
         outputs = outputs.detach().cpu().numpy()
         try:
             return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length] if tok != pad_token])
