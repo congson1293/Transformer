@@ -139,7 +139,7 @@ def test(model, test_data, opt):
     total_loss, n_word_total, n_word_correct = eval_epoch(model, test_data, opt)
     acc = n_word_correct / n_word_total
     avg_loss = total_loss / len(test_data)
-    print('train_loss = %.3f  train_acc=%.3f' % (acc, avg_loss))
+    print('test_loss = %.3f  test_acc=%.3f' % (acc, avg_loss))
 
 
 def main():
