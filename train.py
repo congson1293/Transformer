@@ -154,7 +154,7 @@ def main():
     parser.add_argument('-dropout', type=int, default=0.1)
     parser.add_argument('-batch_size', type=int, default=1500)
     parser.add_argument('-print_every', type=int, default=10)
-    parser.add_argument('-lr', type=float, default=0.0001)
+    parser.add_argument('-lr', type=float, default=0.001)
     parser.add_argument('-create_valset', action='store_true')
     parser.add_argument('-max_strlen', type=int, default=50)
     parser.add_argument('-patience', type=int, default=3)
