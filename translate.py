@@ -91,10 +91,11 @@ def main():
                         settings.n_layers, settings.heads, settings.dropout)
     model.load_state_dict(checkpoint['model'])
 
-    # text = input("Enter a sentence to translate (type 'q' to quit):\n")
-    text = 'Mehrere Männer mit Schutzhelmen bedienen ein Antriebsradsystem.'
-    phrase = translate(text, opt, model, src_vocab, trg_vocab)
-    print('> '+ phrase + '\n')
+    while True:
+        text = input("Enter a sentence to translate (type 'q' to quit):\n")
+        # text = 'Mehrere Männer mit Schutzhelmen bedienen ein Antriebsradsystem.'
+        phrase = translate(text, opt, model, src_vocab, trg_vocab)
+        print('> '+ phrase + '\n')
 
 if __name__ == '__main__':
     main()
