@@ -74,15 +74,14 @@ def main():
     opt = parser.parse_args()
 
     opt.device = 'cuda' if opt.no_cuda is False else 'cpu'
-    opt.load_weights = True
 
     assert opt.beam_size > 0
 
     checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
     settings = checkpoint['settings']
 
-    opt.max_src_len = settings['max_seq_len']
-    opt.max_trg_len = settings['max_trg_len']
+    opt.max_src_len = settings.max_src_len
+    opt.max_trg_len = settings.max_trg_len
 
     vocab = pickle.load('models/vocab.pkl')
     src_vocab = vocab['src']
