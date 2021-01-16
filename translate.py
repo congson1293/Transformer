@@ -77,7 +77,6 @@ def main():
     opt.load_weights = True
 
     assert opt.beam_size > 0
-    assert opt.max_len > 10
 
     checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
     settings = checkpoint['settings']
