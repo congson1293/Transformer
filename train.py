@@ -152,11 +152,9 @@ def main():
     parser.add_argument('-n_layers', type=int, default=6)
     parser.add_argument('-heads', type=int, default=8)
     parser.add_argument('-dropout', type=int, default=0.1)
-    parser.add_argument('-batch_size', type=int, default=1500)
+    parser.add_argument('-batch_size', type=int, default=512)
     parser.add_argument('-print_every', type=int, default=10)
     parser.add_argument('-lr', type=float, default=0.001)
-    parser.add_argument('-create_valset', action='store_true')
-    parser.add_argument('-max_strlen', type=int, default=50)
     parser.add_argument('-patience', type=int, default=3)
 
     opt = parser.parse_args()
@@ -176,6 +174,9 @@ def main():
 
     opt.src_pad = vocab_src.pad_idx
     opt.trg_pad = vocab_trg.pad_idx
+
+    opt.max_src_len = data['max_len']['src']
+    opt.max_trg_len = data['max_len']['trg']
 
     train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
     model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size)

@@ -55,7 +55,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
     eos_tok = trg_vocab.eos_idx
     src_mask = (src != src_vocab.pad_idx).unsqueeze(-2)
     ind = None
-    for i in range(2, opt.max_len):
+    for i in range(2, opt.max_trg_len):
     
         trg_mask = nopeak_mask(i, opt)
 

@@ -34,7 +34,7 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
     words = sentence.split()
     indices = [src_vocab.bos_idx]
     for i, w in enumerate(words):
-        if i+1 == opt.max_len:
+        if i+1 == opt.max_src_len:
             break
         try:
             idx = src_vocab.stoi[w.lower()]
@@ -42,6 +42,11 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
             idx = src_vocab.unk_idx
         indices.append(idx)
     indices.append(src_vocab.eos_idx)
+    if len(indices) < opt.max_src_len + 1:  # we add bos token when initialize ss so we need to plus 1
+        indices += [src_vocab.pad_idx] * (opt.max_src_len - len(indices) + 1)
+    elif len(indices) > opt.max_src_len + 1:
+        indices = indices[:opt.max_src_len + 1]
+        indices[-1] = src_vocab.eos_idx
     sentence = Variable(torch.LongTensor([indices]))
     sentence = sentence.to(opt.device)
     
@@ -64,7 +69,6 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-beam_size', type=int, default=3)
-    parser.add_argument('-max_len', type=int, default=50)
     parser.add_argument('-no_cuda', type=bool, default=True)
 
     opt = parser.parse_args()
@@ -77,6 +81,9 @@ def main():
 
     checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
     settings = checkpoint['settings']
+
+    opt.max_src_len = settings['max_seq_len']
+    opt.max_trg_len = settings['max_trg_len']
 
     vocab = pickle.load('models/vocab.pkl')
     src_vocab = vocab['src']
