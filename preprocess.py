@@ -2,12 +2,12 @@ import re
 import spacy
 import numpy as np
 import joblib as pickle
+from tokenizer.tokenizer import Tokenizer
 
 from vocabulary import Vocabulary
 
-
-src_lang_model = spacy.load('de')
-trg_lang_model = spacy.load('en')
+src_lang_model = spacy.load('en')
+trg_lang_model = Tokenizer()
 
 share_vocab = True
 max_vocab_size_src = 10000
@@ -16,9 +16,11 @@ max_seq_len_src = 30
 max_seq_len_trg = 30
 min_freq = 3
 
+
 def remove_punc(words):
     result = list(map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()]', '', w), words))
     return result
+
 
 def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000):
     with open(data_file) as fp:
@@ -32,15 +34,17 @@ def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=
         else:
             return data
 
+
 def filter_data_with_lenght(data):
     global max_seq_len_src, max_seq_len_trg
-    result = {'src':[], 'trg': []}
+    result = {'src': [], 'trg': []}
     for i in range(len(data['src'])):
         if len(data['src'][i]) > max_seq_len_src or len(data['trg'][i]) > max_seq_len_trg:
             continue
         result['src'].append(data['src'][i])
         result['trg'].append(data['trg'][i])
     return result
+
 
 def encode_data(data, vocab, max_seq_len):
     result = []
@@ -53,10 +57,10 @@ def encode_data(data, vocab, max_seq_len):
                 idx = vocab.unk_idx
             ss.append(idx)
         ss.append(vocab.eos_idx)
-        if len(ss) < max_seq_len+1: # we add bos token when initialize ss so we need to plus 1
+        if len(ss) < max_seq_len + 1:  # we add bos token when initialize ss so we need to plus 1
             ss += [vocab.pad_idx] * (max_seq_len - len(ss) + 1)
-        elif len(ss) > max_seq_len+1:
-            ss = ss[:max_seq_len+1]
+        elif len(ss) > max_seq_len + 1:
+            ss = ss[:max_seq_len + 1]
             ss[-1] = vocab.eos_idx
         result.append(ss)
     return np.array(result)
