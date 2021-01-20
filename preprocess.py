@@ -23,6 +23,7 @@ def remove_punc(words):
 
 
 def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000, lang='en'):
+    print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
         if lang == 'en':
             global src_lang_model
