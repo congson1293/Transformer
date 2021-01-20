@@ -22,9 +22,14 @@ def remove_punc(words):
     return result
 
 
-def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000):
+def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000, lang='en'):
     with open(data_file) as fp:
-        data = [src_lang_model.tokenizer(text.strip()).text for text in fp]
+        if lang == 'en':
+            global src_lang_model
+            data = [src_lang_model.tokenizer(text.strip()).text for text in fp]
+        elif lang == 'vi':
+            global trg_lang_model
+            data = [trg_lang_model.predict(text.strip()) for text in fp]
         data = [remove_punc(tok.split()) for tok in data]
         if build_vocab:
             vocab = Vocabulary()
@@ -66,13 +71,13 @@ def encode_data(data, vocab, max_seq_len):
     return np.array(result)
 
 
-src_data_train, src_vocab = load_data_from_file('data/train.de',
+src_data_train, src_vocab = load_data_from_file('data/train.en',
                                                 build_vocab=True, min_freq=min_freq,
-                                                max_vocab_size=max_vocab_size_src)
+                                                max_vocab_size=max_vocab_size_src, lang='en')
 print('[Info] Get source language vocabulary size:', len(src_vocab.stoi))
-trg_data_train, trg_vocab = load_data_from_file('data/train.en',
+trg_data_train, trg_vocab = load_data_from_file('data/train.vi',
                                                 build_vocab=True, min_freq=min_freq,
-                                                max_vocab_size=max_vocab_size_trg)
+                                                max_vocab_size=max_vocab_size_trg, lang='vi')
 print('[Info] Get target language vocabulary size:', len(trg_vocab.stoi))
 
 train = {'src': src_data_train, 'trg': trg_data_train}
@@ -80,15 +85,15 @@ train = {'src': src_data_train, 'trg': trg_data_train}
 train['src'] = encode_data(train['src'], src_vocab, max_seq_len_src)
 train['trg'] = encode_data(train['trg'], trg_vocab, max_seq_len_trg)
 
-src_data_val = load_data_from_file('data/val.de', build_vocab=False)
-trg_data_val = load_data_from_file('data/val.en', build_vocab=False)
+src_data_val = load_data_from_file('data/tst2012.en', build_vocab=False, lang='en')
+trg_data_val = load_data_from_file('data/tst2012.vi', build_vocab=False, lang='vi')
 val = {'src': src_data_val, 'trg': trg_data_val}
 # val = filter_data_with_lenght(val)
 val['src'] = encode_data(val['src'], src_vocab, max_seq_len_src)
 val['trg'] = encode_data(val['trg'], trg_vocab, max_seq_len_trg)
 
-src_data_test = load_data_from_file('data/test2016.de', build_vocab=False)
-trg_data_test = load_data_from_file('data/test2016.en', build_vocab=False)
+src_data_test = load_data_from_file('data/test2016.de', build_vocab=False, lang='en')
+trg_data_test = load_data_from_file('data/test2016.en', build_vocab=False, lang='vi')
 test = {'src': src_data_test, 'trg': trg_data_test}
 # test = filter_data_with_lenght(test)
 test['src'] = encode_data(test['src'], src_vocab, max_seq_len_src)
