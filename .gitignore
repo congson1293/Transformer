@@ -103,7 +103,6 @@ ENV/
 .mypy_cache/
 .ideas/
 *.pyc
-*.pkl
 logs/
 models/
 *.tar.gz
