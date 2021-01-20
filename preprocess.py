@@ -6,6 +6,8 @@ from tokenizer.tokenizer import Tokenizer
 
 from vocabulary import Vocabulary
 
+import html
+
 src_lang_model = spacy.load('en')
 trg_lang_model = Tokenizer()
 
@@ -18,19 +20,21 @@ min_freq = 3
 
 
 def remove_punc(words):
-    result = list(map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()]', '', w), words))
+    result = map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()]', '', w), words)
+    result = list(filter(lambda w: len(w) > 0, result))
     return result
 
 
 def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000, lang='en'):
+    global h
     print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
         if lang == 'en':
             global src_lang_model
-            data = [src_lang_model.tokenizer(text.strip()).text for text in fp]
+            data = [src_lang_model.tokenizer(html.unescape(text.strip())).text for text in fp]
         elif lang == 'vi':
             global trg_lang_model
-            data = [trg_lang_model.predict(text.strip()) for text in fp]
+            data = [trg_lang_model.predict(html.unescape(text.strip())) for text in fp]
         data = [remove_punc(tok.split()) for tok in data]
         if build_vocab:
             vocab = Vocabulary()
