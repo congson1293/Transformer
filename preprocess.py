@@ -26,15 +26,16 @@ def remove_punc(words):
 
 
 def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000, lang='en'):
-    global h
+    global src_lang_model, trg_lang_model
     print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
-        if lang == 'en':
-            global src_lang_model
-            data = [src_lang_model.tokenizer(html.unescape(text.strip())).text for text in fp]
-        elif lang == 'vi':
-            global trg_lang_model
-            data = [trg_lang_model.predict(html.unescape(text.strip())) for text in fp]
+        data = []
+        for i, text in enumerate(fp):
+            if lang == 'en':
+                data.append(src_lang_model.tokenizer(html.unescape(text.strip())).text)
+            elif lang == 'vi':
+                data.append(trg_lang_model.predict(html.unescape(text.strip())))
+            print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
         data = [remove_punc(tok.split()) for tok in data]
         if build_vocab:
             vocab = Vocabulary()
