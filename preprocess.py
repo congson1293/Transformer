@@ -93,8 +93,8 @@ val = {'src': src_data_val, 'trg': trg_data_val}
 val['src'] = encode_data(val['src'], src_vocab, max_seq_len_src)
 val['trg'] = encode_data(val['trg'], trg_vocab, max_seq_len_trg)
 
-src_data_test = load_data_from_file('data/test2016.de', build_vocab=False, lang='en')
-trg_data_test = load_data_from_file('data/test2016.en', build_vocab=False, lang='vi')
+src_data_test = load_data_from_file('data/tst2013.en', build_vocab=False, lang='en')
+trg_data_test = load_data_from_file('data/tst2013.vi', build_vocab=False, lang='vi')
 test = {'src': src_data_test, 'trg': trg_data_test}
 # test = filter_data_with_lenght(test)
 test['src'] = encode_data(test['src'], src_vocab, max_seq_len_src)
