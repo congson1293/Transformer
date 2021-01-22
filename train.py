@@ -156,6 +156,7 @@ def main():
     parser.add_argument('-print_every', type=int, default=10)
     parser.add_argument('-lr', type=float, default=0.001)
     parser.add_argument('-patience', type=int, default=3)
+    parser.add_argument('-retrain', type=bool, default=False)
 
     opt = parser.parse_args()
     
@@ -179,11 +180,20 @@ def main():
     opt.max_trg_len = data['max_len']['trg']
 
     train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
-    model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
-    if opt.SGDR == True:
-        opt.sched = CosineWithRestarts(optimizer, T_max=len(train_data_loader))
+    if opt.retrain:
+        checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
+    else:
+        checkpoint = None
+
+    model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size, checkpoint=checkpoint)
+
+    if checkpoint is not None:
+        optimizer = checkpoint['optimizer']
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
+        if opt.SGDR == True:
+            opt.sched = CosineWithRestarts(optimizer, T_max=len(train_data_loader))
 
     train(model, optimizer, train_data_loader, valid_data_loader, opt)
 

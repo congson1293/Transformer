@@ -53,16 +53,19 @@ class Transformer(nn.Module):
         output = F.log_softmax(output, dim=-1)
         return output
 
-def init_model(opt, src_vocab_size, trg_vocab_size):
+def init_model(opt, src_vocab_size, trg_vocab_size, checkpoint=None):
     
     assert opt.d_model % opt.heads == 0
     assert opt.dropout < 1
 
     model = Transformer(src_vocab_size, trg_vocab_size, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
 
-    for p in model.parameters():
-        if p.dim() > 1:
-            nn.init.xavier_uniform_(p)
+    if checkpoint is not None:
+        model.load_state_dict(checkpoint['model'])
+    else:
+        for p in model.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
 
     if opt.device == 'cuda':
         model = model.cuda()
