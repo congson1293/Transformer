@@ -159,7 +159,13 @@ def main():
     parser.add_argument('-retrain', type=bool, default=False)
 
     opt = parser.parse_args()
-    
+
+    if opt.retrain:
+        checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
+        opt = checkpoint['settings']
+    else:
+        checkpoint = None
+
     opt.device = 'cuda' if opt.no_cuda is False else 'cpu'
     if opt.device == 'cuda':
         assert torch.cuda.is_available()
@@ -180,11 +186,6 @@ def main():
     opt.max_trg_len = data['max_len']['trg']
 
     train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
-
-    if opt.retrain:
-        checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
-    else:
-        checkpoint = None
 
     model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size, checkpoint=checkpoint)
 
