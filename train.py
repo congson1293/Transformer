@@ -160,16 +160,16 @@ def main():
 
     opt = parser.parse_args()
 
+    opt.device = 'cuda' if opt.no_cuda is False else 'cpu'
+    if opt.device == 'cuda':
+        assert torch.cuda.is_available()
+
     if opt.retrain:
         print('load checkpoint ...')
         checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
         opt = checkpoint['settings']
     else:
         checkpoint = None
-
-    opt.device = 'cuda' if opt.no_cuda is False else 'cpu'
-    if opt.device == 'cuda':
-        assert torch.cuda.is_available()
 
     data = pickle.load('data/m30k_deen_shr.pkl')
 
