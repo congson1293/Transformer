@@ -61,6 +61,7 @@ def init_model(opt, src_vocab_size, trg_vocab_size, checkpoint=None):
     model = Transformer(src_vocab_size, trg_vocab_size, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
 
     if checkpoint is not None:
+        print('load weight ...')
         model.load_state_dict(checkpoint['model'])
     else:
         for p in model.parameters():

@@ -161,6 +161,7 @@ def main():
     opt = parser.parse_args()
 
     if opt.retrain:
+        print('load checkpoint ...')
         checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
         opt = checkpoint['settings']
     else:
