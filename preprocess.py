@@ -14,13 +14,13 @@ trg_lang_model = Tokenizer()
 share_vocab = True
 max_vocab_size_src = 10000
 max_vocab_size_trg = 10000
-max_seq_len_src = 30
-max_seq_len_trg = 30
+max_seq_len_src = 50
+max_seq_len_trg = 50
 min_freq = 3
 
 
 def remove_punc(words):
-    result = map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()]', '', w), words)
+    result = map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', w), words)
     result = list(filter(lambda w: len(w) > 0, result))
     return result
 
