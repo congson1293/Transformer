@@ -36,10 +36,9 @@ def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=
             if lang == 'en':
                 data.append(src_lang_model.tokenizer(html.unescape(text.strip())).text)
             elif lang == 'vi':
-                pass
+                data.append(html.unescape(text.strip()))
                 # data.append(trg_lang_model.tokenize(html.unescape(text.strip())))
             print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
-            if i == 1000: break
         data = [remove_punc(tok.split()) for tok in data]
         if build_vocab:
             vocab = Vocabulary()
