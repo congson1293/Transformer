@@ -13,10 +13,10 @@ src_lang_model = spacy.load('en')
 trg_lang_model = Tokenizer()
 
 share_vocab = True
-max_vocab_size_src = 10000
-max_vocab_size_trg = 10000
-max_seq_len_src = 100
-max_seq_len_trg = 100
+max_vocab_size_src = 15000
+max_vocab_size_trg = 15000
+max_seq_len_src = 75
+max_seq_len_trg = 75
 min_freq = 3
 
 

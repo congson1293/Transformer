@@ -154,7 +154,7 @@ def main():
     parser.add_argument('-dropout', type=int, default=0.1)
     parser.add_argument('-batch_size', type=int, default=512)
     parser.add_argument('-print_every', type=int, default=10)
-    parser.add_argument('-lr', type=float, default=0.001)
+    parser.add_argument('-lr', type=float, default=1e-4)
     parser.add_argument('-patience', type=int, default=3)
     parser.add_argument('-retrain', type=bool, default=False)
 
