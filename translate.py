@@ -9,7 +9,7 @@ import spacy
 from vocabulary import Vocabulary
 
 
-src_lang_model = spacy.load('de')
+src_lang_model = spacy.load('en')
 
 def multiple_replace(dict, text):
   # Create a regular expression  from the dictionary keys
@@ -88,7 +88,7 @@ def main():
     trg_vocab = vocab['trg']
 
     model = Transformer(src_vocab.vocab_size, trg_vocab.vocab_size, settings.d_model,
-                        settings.n_layers, settings.heads, settings.dropout)
+                        settings.n_layers, settings.heads, settings.dropout).to(opt.device)
     model.load_state_dict(checkpoint['model'])
 
     while True:

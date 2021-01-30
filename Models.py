@@ -58,7 +58,7 @@ def init_model(opt, src_vocab_size, trg_vocab_size, checkpoint=None):
     assert opt.d_model % opt.heads == 0
     assert opt.dropout < 1
 
-    model = Transformer(src_vocab_size, trg_vocab_size, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
+    model = Transformer(src_vocab_size, trg_vocab_size, opt.d_model, opt.n_layers, opt.heads, opt.dropout).to(opt.device)
 
     if checkpoint is not None:
         print('load weight ...')
@@ -67,8 +67,5 @@ def init_model(opt, src_vocab_size, trg_vocab_size, checkpoint=None):
         for p in model.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
-
-    if opt.device == 'cuda':
-        model = model.cuda()
     
     return model
