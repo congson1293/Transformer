@@ -116,10 +116,9 @@ def train(model, optimizer, train_data, valid_data, opt):
         if valid_accuracy > best_valid_acc:
             best_valid_acc = valid_accuracy
             checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict(),
-                          'optimizer': optimizer, 'best_model': model.state_dict()}
+                          'best_model': model.state_dict()}
         else:
-            checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict(),
-                          'optimizer': optimizer}
+            checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict()}
         torch.save(checkpoint, 'models/checkpoint.chkpt')
 
         if opt.patience > 0 and avg_valid_loss >= pre_valid_loss:
@@ -156,12 +155,20 @@ def main():
     parser.add_argument('-print_every', type=int, default=10)
     parser.add_argument('-lr', type=float, default=0.001)
     parser.add_argument('-patience', type=int, default=3)
+    parser.add_argument('-retrain', type=bool, default=False)
 
     opt = parser.parse_args()
     
     opt.device = 'cuda' if opt.no_cuda is False else 'cpu'
     if opt.device == 'cuda':
         assert torch.cuda.is_available()
+
+    if opt.retrain:
+        print('load checkpoint ...')
+        checkpoint = torch.load('models/checkpoint.chkpt', map_location=torch.device(opt.device))
+        opt = checkpoint['settings']
+    else:
+        checkpoint = None
 
     data = pickle.load('data/m30k_deen_shr.pkl')
 
@@ -179,7 +186,7 @@ def main():
     opt.max_trg_len = data['max_len']['trg']
 
     train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
-    model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size)
+    model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size, checkpoint=checkpoint)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
     if opt.SGDR == True:
