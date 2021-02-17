@@ -79,7 +79,7 @@ def cal_bleu(opt, model, src_vocab, trb_vocab):
     with open('data/tst2013.en', 'r') as fp:
         for i, sen in enumerate(fp):
             trg_sen = trg_sentences[i]
-            pred_sen = remove_punc(translate_sentence(sen, opt, model, src_vocab, trb_vocab))
+            pred_sen = remove_punc(translate(sen, opt, model, src_vocab, trb_vocab))
             bleu.append(sentence_bleu([trg_sen], pred_sen))
             print('\rcalculate bleu score of sentence {}-th ...'.format(i+1), end='', flush=True)
     print('\nCumulative bleu score 4-gram = %.4f' % (sum(bleu)/len(bleu)))
