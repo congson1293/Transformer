@@ -64,6 +64,24 @@ def translate(text, opt, model, src_vocab, trb_vocab):
 
     return (' '.join(translated))
 
+def cal_bleu(opt, model, src_vocab, trb_vocab):
+    import re
+    from nltk.translate.bleu_score import sentence_bleu
+
+    def remove_punc(sen):
+        result = re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', sen)
+        return result.lower()
+
+    bleu = []
+
+    with open('data/tst2013.vi', 'r') as fp:
+        trg_sentences = [remove_punc(sen) for sen in fp]
+    with open('data/tst2013.en', 'r') as fp:
+        for i, sen in enumerate(fp):
+            trg_sen = trg_sentences[i]
+            pred_sen = remove_punc(translate_sentence(sen, opt, model, src_vocab, trb_vocab))
+            bleu.append(sentence_bleu([trg_sen], pred_sen))
+    print('Cumulative bleu score 4-gram = %.4f' % (sum(bleu)/len(bleu)))
 
 def main():
 
@@ -90,6 +108,8 @@ def main():
     model = Transformer(src_vocab.vocab_size, trg_vocab.vocab_size, settings.d_model,
                         settings.n_layers, settings.heads, settings.dropout).to(opt.device)
     model.load_state_dict(checkpoint['model'])
+
+    cal_bleu(opt, model, src_vocab, trg_vocab)
 
     while True:
         text = input("Enter a sentence to translate (type 'q' to quit):\n")
