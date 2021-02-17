@@ -69,7 +69,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-beam_size', type=int, default=3)
-    parser.add_argument('-no_cuda', type=bool, default=True)
+    parser.add_argument('-no_cuda', type=bool, default=False)
 
     opt = parser.parse_args()
 
