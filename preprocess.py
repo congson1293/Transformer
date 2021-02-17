@@ -3,14 +3,12 @@ import spacy
 import numpy as np
 import joblib as pickle
 
-from tokenizer.tokenizer import Tokenizer
 
 from vocabulary import Vocabulary
 
 import html
 
 src_lang_model = spacy.load('en')
-trg_lang_model = Tokenizer()
 
 share_vocab = True
 max_vocab_size_src = 15000
