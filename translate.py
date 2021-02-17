@@ -65,11 +65,12 @@ def translate(text, opt, model, src_vocab, trb_vocab):
     return (' '.join(translated))
 
 def cal_bleu(opt, model, src_vocab, trb_vocab):
-    import re
+    import re, html
     from nltk.translate.bleu_score import sentence_bleu
 
     def remove_punc(sen):
-        result = re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', sen)
+        result = html.unescape(sen.strip())
+        result = re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', result)
         return result.lower()
 
     bleu = []
