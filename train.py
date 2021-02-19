@@ -8,6 +8,7 @@ from Batch import create_masks
 import joblib as pickle
 import utils
 from vocabulary import Vocabulary
+from transformers import RobertaTokenizer, AdamW, get_linear_schedule_with_warmup
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 
 
@@ -22,7 +23,7 @@ def cal_performance(pred, trg_output, trg_pad_idx):
 
     return n_correct, n_word
 
-def train_epoch(model, optimizer, train_data, opt, epoch, start_time):
+def train_epoch(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, opt, epoch, start_time):
 
     model.train()
 
@@ -44,12 +45,21 @@ def train_epoch(model, optimizer, train_data, opt, epoch, start_time):
 
         n_correct, n_word = cal_performance(preds, trg_output, opt.trg_pad)
 
-        optimizer.zero_grad()
+        optimizer_decoder.zero_grad()
+        optimizer_encoder.zero_grad()
+
         loss = F.cross_entropy(preds, trg_output, ignore_index=opt.trg_pad)
         loss.backward()
-        optimizer.step()
+        torch.nn.utils.clip_grad_norm_(parameters=model.parameters(), max_norm=1.0)
+
+        optimizer_decoder.step()
         if opt.SGDR == True:
             opt.sched.step()
+
+        # update parameters
+        optimizer_encoder.step()
+        # Update the learning rate.
+        scheduler_encoder.step()
 
         n_word_total += n_word
         n_word_correct += n_correct
@@ -93,7 +103,7 @@ def eval_epoch(model, valid_data, opt):
 
     return total_loss, n_word_total, n_word_correct
 
-def train(model, optimizer, train_data, valid_data, opt):
+def train(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, valid_data, opt):
     
     print("training model...")
     start = time.time()
@@ -104,7 +114,7 @@ def train(model, optimizer, train_data, valid_data, opt):
 
     for epoch in range(opt.epochs):
 
-        total_train_loss, n_word_total, n_word_correct = train_epoch(model, optimizer, train_data, opt, epoch, start)
+        total_train_loss, n_word_total, n_word_correct = train_epoch(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, opt, epoch, start)
 
         train_accuracy = n_word_correct / n_word_total
         avg_train_loss = total_train_loss / len(train_data)
@@ -172,14 +182,14 @@ def main():
 
     data = pickle.load('data/m30k_deen_shr.pkl')
 
-    vocab_src = data['vocab']['src']
+    vocab_src = RobertaTokenizer.from_pretrained('roberta-base')
     vocab_trg = data['vocab']['trg']
 
     vocab = {'src': vocab_src, 'trg': vocab_trg}
     utils.mkdir('models')
     pickle.dump(vocab, 'models/vocab.pkl')
 
-    opt.src_pad = vocab_src.pad_idx
+    opt.src_pad = vocab_src.pad_token_id
     opt.trg_pad = vocab_trg.pad_idx
 
     opt.max_src_len = data['max_len']['src']
@@ -187,13 +197,36 @@ def main():
 
     train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
 
-    model = init_model(opt, vocab_src.vocab_size, vocab_trg.vocab_size, checkpoint=checkpoint)
+    model = init_model(opt, vocab_trg.vocab_size, checkpoint=checkpoint)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
+    # optimizer for encoder
+    param_optimizer = list(model.encoder.named_parameters())
+    no_decay = ['bias', 'gamma', 'beta']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+         'weight_decay_rate': 0.01},
+        {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+         'weight_decay_rate': 0.0}
+    ]
+    optimizer_encoder = AdamW(
+        optimizer_grouped_parameters,
+        lr=3e-5,
+        eps=1e-8
+    )
+    # Create the learning rate scheduler.
+    total_steps = opt.batch_size * opt.epochs
+    scheduler_encoder = get_linear_schedule_with_warmup(
+        optimizer_encoder,
+        num_warmup_steps=0,
+        num_training_steps=total_steps
+    )
+
+    # optimizer for decoder
+    optimizer_decoder = torch.optim.Adam(model.decoder.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
     if opt.SGDR == True:
-        opt.sched = CosineWithRestarts(optimizer, T_max=len(train_data_loader))
+        opt.sched = CosineWithRestarts(optimizer_decoder, T_max=len(train_data_loader))
 
-    train(model, optimizer, train_data_loader, valid_data_loader, opt)
+    train(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data_loader, valid_data_loader, opt)
 
     test(model, test_data_loader, opt)
 
@@ -201,10 +234,6 @@ def main():
 def prepare_dataloaders(opt, data):
     batch_size = opt.batch_size
 
-    opt.src_pad_idx = data['vocab']['src'].pad_idx
-    opt.trg_pad_idx = data['vocab']['trg'].pad_idx
-
-    opt.src_vocab_size = data['vocab']['src'].vocab_size
     opt.trg_vocab_size = data['vocab']['trg'].vocab_size
 
     train_inputs = torch.tensor(data['train']['src'])

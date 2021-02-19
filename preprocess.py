@@ -9,9 +9,7 @@ from vocabulary import Vocabulary
 import html
 
 src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
-x = src_lang_model.unk_token_id
-share_vocab = True
-max_vocab_size_src = 15000
+
 max_vocab_size_trg = 15000
 max_seq_len_src = 75
 max_seq_len_trg = 75
@@ -24,8 +22,7 @@ def remove_punc(words):
     result = list(filter(lambda w: len(w) > 0, result))
     return result
 
-
-def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000):
+def load_data_from_file(data_file, build_vocab=False, min_freq=1, max_vocab_size=5000):
     global src_lang_model, trg_lang_model
     print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
@@ -43,19 +40,7 @@ def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=
         else:
             return data
 
-
-def filter_data_with_lenght(data):
-    global max_seq_len_src, max_seq_len_trg
-    result = {'src': [], 'trg': []}
-    for i in range(len(data['src'])):
-        if len(data['src'][i]) > max_seq_len_src or len(data['trg'][i]) > max_seq_len_trg:
-            continue
-        result['src'].append(data['src'][i])
-        result['trg'].append(data['trg'][i])
-    return result
-
-
-def encode_data(data, vocab, max_seq_len):
+def encode_trg_data(data, vocab, max_seq_len):
     result = []
     for s in data:
         ss = [vocab.bos_idx]
@@ -66,58 +51,53 @@ def encode_data(data, vocab, max_seq_len):
                 idx = vocab.unk_idx
             ss.append(idx)
         ss.append(vocab.eos_idx)
-        if len(ss) < max_seq_len + 1:  # we add bos token when initialize ss so we need to plus 1
-            ss += [vocab.pad_idx] * (max_seq_len - len(ss) + 1)
-        elif len(ss) > max_seq_len + 1:
-            ss = ss[:max_seq_len + 1]
+        if len(ss) < max_seq_len:  # we add bos token when initialize ss so we need to plus 1
+            ss += [vocab.pad_idx] * (max_seq_len - len(ss))
+        elif len(ss) > max_seq_len:
+            ss = ss[:max_seq_len]
             ss[-1] = vocab.eos_idx
         result.append(ss)
     return np.array(result)
 
+def encode_src_data(data, max_seq_len):
+    global src_lang_model
+    result = []
+    x = max_seq_len - 2
+    for s in data:
+        if len(s) > x:
+            ss = ' '.join(s[:x])
+            result.append(src_lang_model.encode(ss, add_special_tokens=True))
+        else:
+            xx = [src_lang_model.pad_token_id for _ in range(max_seq_len)]
+            ss = ' '.join(s)
+            xxx = src_lang_model.encode(ss, add_special_tokens=True)
+            xx[:len(xxx)] = xxx[:]
+            result.append(xx)
+    return result
 
-src_data_train, src_vocab = load_data_from_file('data/train.en',
-                                                build_vocab=True, min_freq=min_freq,
-                                                max_vocab_size=max_vocab_size_src, lang='en')
-print('[Info] Get source language vocabulary size:', len(src_vocab.stoi))
+src_data_train = load_data_from_file('data/train.en')
 trg_data_train, trg_vocab = load_data_from_file('data/train.vi',
                                                 build_vocab=True, min_freq=min_freq,
-                                                max_vocab_size=max_vocab_size_trg, lang='vi')
-print('[Info] Get target language vocabulary size:', len(trg_vocab.stoi))
-
+                                                max_vocab_size=max_vocab_size_trg)
 train = {'src': src_data_train, 'trg': trg_data_train}
-# train = filter_data_with_lenght(train)
-train['src'] = encode_data(train['src'], src_vocab, max_seq_len_src)
-train['trg'] = encode_data(train['trg'], trg_vocab, max_seq_len_trg)
+train['src'] = encode_src_data(train['src'], max_seq_len_src)
+train['trg'] = encode_trg_data(train['trg'], trg_vocab, max_seq_len_trg)
 
-src_data_val = load_data_from_file('data/tst2012.en', build_vocab=False, lang='en')
-trg_data_val = load_data_from_file('data/tst2012.vi', build_vocab=False, lang='vi')
+src_data_val = load_data_from_file('data/tst2012.en')
+trg_data_val = load_data_from_file('data/tst2012.vi')
 val = {'src': src_data_val, 'trg': trg_data_val}
 # val = filter_data_with_lenght(val)
-val['src'] = encode_data(val['src'], src_vocab, max_seq_len_src)
-val['trg'] = encode_data(val['trg'], trg_vocab, max_seq_len_trg)
+val['src'] = encode_src_data(val['src'], max_seq_len_src)
+val['trg'] = encode_trg_data(val['trg'], trg_vocab, max_seq_len_trg)
 
-src_data_test = load_data_from_file('data/tst2013.en', build_vocab=False, lang='en')
-trg_data_test = load_data_from_file('data/tst2013.vi', build_vocab=False, lang='vi')
+src_data_test = load_data_from_file('data/tst2013.en')
+trg_data_test = load_data_from_file('data/tst2013.vi')
 test = {'src': src_data_test, 'trg': trg_data_test}
-# test = filter_data_with_lenght(test)
-test['src'] = encode_data(test['src'], src_vocab, max_seq_len_src)
-test['trg'] = encode_data(test['trg'], trg_vocab, max_seq_len_trg)
+# val = filter_data_with_lenght(val)
+test['src'] = encode_src_data(test['src'], max_seq_len_src)
+test['trg'] = encode_trg_data(test['trg'], trg_vocab, max_seq_len_trg)
 
-if share_vocab:
-    print('[Info] Merging two vocabulary ...')
-    for w, _ in src_vocab.stoi.items():
-        try:
-            _ = trg_vocab.stoi[w]
-            continue
-        except:
-            idx = len(trg_vocab.stoi)
-            trg_vocab.stoi[w] = idx
-            trg_vocab.itos[idx] = w
-    trg_vocab.vocab_size = len(trg_vocab.stoi)
-    src_vocab = trg_vocab
-    print('[Info] Get merged vocabulary size:', len(src_vocab.stoi))
-
-data = {'vocab': {'src': src_vocab, 'trg': trg_vocab},
+data = {'vocab': {'trg': trg_vocab},
         'train': train,
         'valid': val,
         'test': test,
