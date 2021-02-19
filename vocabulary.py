@@ -7,9 +7,9 @@ class Vocabulary():
 
     def __init__(self):
         self.pad_token = Constants.PAD_WORD
-        self.pad_idx = 0
+        self.pad_idx = 1
         self.bos_token = Constants.BOS_WORD
-        self.bos_idx = 1
+        self.bos_idx = 0
         self.eos_token = Constants.EOS_WORD
         self.eos_idx = 2
         self.unk_token = Constants.UNK_WORD

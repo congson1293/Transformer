@@ -72,10 +72,10 @@ def encode_data(data, vocab, max_seq_len):
                 idx = vocab.unk_idx
             ss.append(idx)
         ss.append(vocab.eos_idx)
-        if len(ss) < max_seq_len + 1:  # we add bos token when initialize ss so we need to plus 1
-            ss += [vocab.pad_idx] * (max_seq_len - len(ss) + 1)
-        elif len(ss) > max_seq_len + 1:
-            ss = ss[:max_seq_len + 1]
+        if len(ss) < max_seq_len:  # we add bos token when initialize ss so we need to plus 1
+            ss += [vocab.pad_idx] * (max_seq_len - len(ss))
+        elif len(ss) > max_seq_len:
+            ss = ss[:max_seq_len]
             ss[-1] = vocab.eos_idx
         result.append(ss)
     return np.array(result)
