@@ -99,3 +99,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+# Cumulative bleu score 4-gram = 0.5369

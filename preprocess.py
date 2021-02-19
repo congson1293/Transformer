@@ -2,14 +2,14 @@ import re
 import spacy
 import numpy as np
 import joblib as pickle
-
+from transformers import *
 
 from vocabulary import Vocabulary
 
 import html
 
-src_lang_model = spacy.load('en')
-
+src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
+x = src_lang_model.unk_token_id
 share_vocab = True
 max_vocab_size_src = 15000
 max_vocab_size_trg = 15000
@@ -25,17 +25,13 @@ def remove_punc(words):
     return result
 
 
-def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000, lang='en'):
+def load_data_from_file(data_file, build_vocab=True, min_freq=1, max_vocab_size=5000):
     global src_lang_model, trg_lang_model
     print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
         data = []
         for i, text in enumerate(fp):
-            if lang == 'en':
-                data.append(src_lang_model.tokenizer(html.unescape(text.strip())).text)
-            elif lang == 'vi':
-                data.append(html.unescape(text.strip()))
-                # data.append(trg_lang_model.tokenize(html.unescape(text.strip())))
+            data.append(html.unescape(text.strip()))
             print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
         print('')
         data = [remove_punc(tok.split()) for tok in data]
