@@ -201,8 +201,8 @@ def main():
 def prepare_dataloaders(opt, data):
     batch_size = opt.batch_size
 
-    opt.src_pad_idx = data['vocab']['src'].pad_idx
-    opt.trg_pad_idx = data['vocab']['trg'].pad_idx
+    # opt.src_pad_idx = data['vocab']['src'].pad_idx
+    # opt.trg_pad_idx = data['vocab']['trg'].pad_idx
 
     opt.src_vocab_size = data['vocab']['src'].vocab_size
     opt.trg_vocab_size = data['vocab']['trg'].vocab_size
