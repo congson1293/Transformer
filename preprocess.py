@@ -62,17 +62,17 @@ def encode_trg_data(data, vocab, max_seq_len):
 def encode_src_data(data, max_seq_len):
     global src_lang_model
     result = []
-    x = max_seq_len - 2
-    for s in data:
-        if len(s) > x:
-            ss = ' '.join(s[:x])
-            result.append(src_lang_model.encode(ss, add_special_tokens=True))
-        else:
-            xx = [src_lang_model.pad_token_id for _ in range(max_seq_len)]
-            ss = ' '.join(s)
-            xxx = src_lang_model.encode(ss, add_special_tokens=True)
-            xx[:len(xxx)] = xxx[:]
-            result.append(xx)
+    for i, s in enumerate(data):
+        try:
+            ss = src_lang_model.encode(s, add_special_tokens=False)
+            x = ss[:max_seq_len-2]
+            x.insert(0, src_lang_model.bos_token_id)
+            x.append(src_lang_model.eos_token_id)
+            gap = max_seq_len - len(x)
+            x += [src_lang_model.pad_token_id] * gap
+            result.append(x)
+        except:
+            print(i)
     return result
 
 src_data_train = load_data_from_file('data/train.en')
