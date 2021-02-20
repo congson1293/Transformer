@@ -163,7 +163,8 @@ def main():
     parser.add_argument('-dropout', type=int, default=0.1)
     parser.add_argument('-batch_size', type=int, default=512)
     parser.add_argument('-print_every', type=int, default=10)
-    parser.add_argument('-lr', type=float, default=1e-4)
+    parser.add_argument('-lr_encoder', type=float, default=3e-5)
+    parser.add_argument('-lr_decoder', type=float, default=1e-4)
     parser.add_argument('-patience', type=int, default=3)
     parser.add_argument('-retrain', type=bool, default=False)
 
@@ -210,7 +211,7 @@ def main():
     ]
     optimizer_encoder = AdamW(
         optimizer_grouped_parameters,
-        lr=3e-5,
+        lr=opt.lr_encoder,
         eps=1e-8
     )
     # Create the learning rate scheduler.
@@ -222,7 +223,7 @@ def main():
     )
 
     # optimizer for decoder
-    optimizer_decoder = torch.optim.Adam(model.decoder.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
+    optimizer_decoder = torch.optim.Adam(model.decoder.parameters(), lr=opt.lr_decoder, betas=(0.9, 0.98), eps=1e-9)
     if opt.SGDR == True:
         opt.sched = CosineWithRestarts(optimizer_decoder, T_max=len(train_data_loader))
 

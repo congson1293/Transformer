@@ -59,7 +59,7 @@ class Transformer(nn.Module):
     def forward(self, src, trg, src_mask, trg_mask):
         e_outputs = self.encoder(src, src_mask) # [batch_size, max_len+1, d_model]
         #print("DECODER")
-        d_output = self.decoder(trg, e_outputs, src_mask, trg_mask)
+        d_output = self.decoder(trg, e_outputs, src_mask.unsqueeze(-2), trg_mask)
         output = self.out(d_output)
         output = F.log_softmax(output, dim=-1)
         return output
