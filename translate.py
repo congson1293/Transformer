@@ -80,7 +80,7 @@ def main():
     src_vocab = vocab['src']
     trg_vocab = vocab['trg']
 
-    model = Transformer(src_vocab.vocab_size, trg_vocab.vocab_size, settings.d_model,
+    model = Transformer(trg_vocab.vocab_size, settings.d_model,
                         settings.n_layers, settings.heads, settings.dropout).to(opt.device)
     model.load_state_dict(checkpoint['model'])
 
