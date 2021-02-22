@@ -7,9 +7,10 @@ from torch.autograd import Variable
 import re
 import spacy
 from vocabulary import Vocabulary
+from transformers import RobertaTokenizer
 
 
-src_lang_model = spacy.load('en')
+src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
 
 def multiple_replace(dict, text):
   # Create a regular expression  from the dictionary keys
@@ -20,37 +21,29 @@ def multiple_replace(dict, text):
 
 def remove_punc(sen):
     result = re.sub('[,.!;:\"\'?<>{}\[\]()]', '', sen)
+    result = re.sub('(\d+,\d+\w*)|(\d+\.\d+\w*)|(\w*\d+\w*)', 'number', result)
     return result
 
 def preprocess_input(s):
-    global src_lang_model
-    sen = src_lang_model.tokenizer(s.strip()).text
-    sen = remove_punc(sen)
+    sen = remove_punc(s)
     return sen
 
 def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
+    global src_lang_model
 
-    sentence = preprocess_input(sentence)
-    words = sentence.split()
-    indices = [src_vocab.bos_idx]
-    for i, w in enumerate(words):
-        if i+1 == opt.max_src_len:
-            break
-        try:
-            idx = src_vocab.stoi[w.lower()]
-        except:
-            idx = src_vocab.unk_idx
-        indices.append(idx)
-    indices.append(src_vocab.eos_idx)
-    if len(indices) < opt.max_src_len + 1:  # we add bos token when initialize ss so we need to plus 1
-        indices += [src_vocab.pad_idx] * (opt.max_src_len - len(indices) + 1)
-    elif len(indices) > opt.max_src_len + 1:
-        indices = indices[:opt.max_src_len + 1]
-        indices[-1] = src_vocab.eos_idx
-    sentence = Variable(torch.LongTensor([indices]))
-    sentence = sentence.to(opt.device)
+    s = preprocess_input(sentence)
+
+    indices = src_lang_model.encode(s, add_special_tokens=False)
+    indices = indices[:opt.max_src_len - 2]
+    indices.insert(0, src_lang_model.bos_token_id)
+    indices.append(src_lang_model.eos_token_id)
+    gap = opt.max_src_len - len(indices)
+    indices += [src_lang_model.pad_token_id] * gap
+
+    sen = Variable(torch.LongTensor([indices]))
+    sen = sen.to(opt.device)
     
-    sentence = beam_search(sentence, model, src_vocab, trg_vocab, opt)
+    sentence = beam_search(sen, model, src_vocab, trg_vocab, opt)
 
     return  multiple_replace({' ?' : '?',' !':'!',' .':'.','\' ':'\'',' ,':','}, sentence)
 
