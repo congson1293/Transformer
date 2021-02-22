@@ -74,7 +74,8 @@ def init_model(opt, trg_vocab_size, checkpoint=None):
     if checkpoint is not None:
         print('load weight ...')
         model.load_state_dict(checkpoint['model'])
-        torch.cuda.empty_cache()
+        if opt.device == 'cuda':
+            torch.cuda.empty_cache()
     else:
         for p in model.decoder.parameters():
             if p.dim() > 1:
