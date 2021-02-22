@@ -125,8 +125,10 @@ def train(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_
 
         if valid_accuracy > best_valid_acc:
             best_valid_acc = valid_accuracy
-            checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict(),
-                          'best_model': model.state_dict()}
+            checkpoint = {'epoch': epoch, 'settings': opt,
+                          'encoder': model.encoder.state_dict(),
+                          'decoder': model.decoder.state_dict(),
+                          'out': model.out.state_dict()}
         else:
             checkpoint = {'epoch': epoch, 'settings': opt, 'model': model.state_dict()}
         torch.save(checkpoint, 'models/checkpoint.chkpt')
