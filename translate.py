@@ -59,6 +59,7 @@ def translate(text, opt, model, src_vocab, trb_vocab):
 
 
 def main():
+    global src_lang_model
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-beam_size', type=int, default=3)
@@ -77,7 +78,6 @@ def main():
     opt.max_trg_len = settings.max_trg_len
 
     vocab = pickle.load('models/vocab.pkl')
-    src_vocab = vocab['src']
     trg_vocab = vocab['trg']
 
     model = Transformer(trg_vocab.vocab_size, settings.d_model,
@@ -87,7 +87,7 @@ def main():
     while True:
         text = input("Enter a sentence to translate (type 'q' to quit):\n")
         # text = 'Mehrere Männer mit Schutzhelmen bedienen ein Antriebsradsystem.'
-        phrase = translate(text, opt, model, src_vocab, trg_vocab)
+        phrase = translate(text, opt, model, src_lang_model, trg_vocab)
         print('> '+ phrase + '\n')
 
 if __name__ == '__main__':
