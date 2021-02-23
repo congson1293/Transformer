@@ -3,9 +3,6 @@ from Batch import nopeak_mask
 import math
 
 
-def nonzero(t, v):
-    pass
-
 def init_vars(src, model, src_vocab, trg_vocab, opt):
     
     init_tok = trg_vocab.bos_idx
