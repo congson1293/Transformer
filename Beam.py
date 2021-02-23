@@ -79,6 +79,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
             break
 
     pad_token = trg_vocab.pad_idx
+    bos_token = trg_vocab.bos_idx
 
     if ind is None:
         length = (outputs[0] == eos_token).nonzero(as_tuple=True)[0]
@@ -92,6 +93,6 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
         length = (outputs[ind] == eos_token).nonzero(as_tuple=True)[0]
         outputs = outputs.detach().cpu().numpy()
         try:
-            return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length] if tok != pad_token and tok != eos_token])
+            return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:length] if tok != pad_token and tok != eos_token and tok != bos_token])
         except:
-            return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:] if tok != pad_token and tok != eos_token])
+            return ' '.join([trg_vocab.itos[tok] for tok in outputs[ind][1:] if tok != pad_token and tok != eos_token and tok != bos_token])
