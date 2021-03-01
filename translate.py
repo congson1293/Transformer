@@ -108,7 +108,7 @@ def main():
                         settings.n_layers, settings.heads, settings.dropout).to(opt.device)
     model.load_state_dict(checkpoint['model'])
 
-    cal_bleu(opt, model, trg_vocab)
+    # cal_bleu(opt, model, trg_vocab)
 
     while True:
         text = input("Enter a sentence to translate (type 'q' to quit):\n")
