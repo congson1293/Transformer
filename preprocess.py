@@ -43,13 +43,14 @@ def encode_ner(src, trg):
     new_src, new_trg = [], []
     for i, s in enumerate(src):
         doc = ner(s)
+        t = trg[i]
         for X in doc.ents:
             if not X.label_ in ner_tag:
                 continue
-            ss = s.replace(X.text, X.label_)
-            new_src.append(ss)
-            t = trg[i].replace(X.text, X.label_)
-            new_trg.append(t)
+            s = s.replace(X.text, X.label_)
+            t = t.replace(X.text, X.label_)
+        new_src.append(s)
+        new_trg.append(t)
         print(f'\rencode ner for sentence {i+1}', end='', flush=True)
     return new_src, new_trg
 
