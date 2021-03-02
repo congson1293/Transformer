@@ -1,31 +1,18 @@
-import html, re
-from transformers import RobertaTokenizer
+import spacy
+from spacy import displacy
+from collections import Counter
+import en_core_web_sm
+import html
 
-def remove_punc(words):
-    result = map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', w), words)
-    result = map(lambda w: re.sub('(\d+,\d+\w*)|(\d+\.\d+\w*)|(\w*\d+\w*)', 'number', w), result)
-    result = list(filter(lambda w: len(w) > 0, result))
-    return result
+nlp = en_core_web_sm.load()
 
-with open('data/train.en', 'r') as fp:
-    en = [line for line in fp]
-with open('data/train.vi', 'r') as fp:
-    vi = [line for line in fp]
+s = 'I have a B.A. in English from Harvard College , an MBA in marketing from Wharton Business School .'
+doc = nlp(html.unescape(s))
+print([(X.text, X.label_) for X in doc.ents])
+for X in doc.ents:
+    s = s.replace(X.text, X.label_)
+
+from transformers import *
 
 tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
-
-new_en, new_vi = [], []
-for i, line in enumerate(en):
-    try:
-        x = html.unescape(line.strip())
-        x = remove_punc(x.split())
-        _ = tokenizer.encode(x)
-        new_en.append(line)
-        new_vi.append(vi[i])
-    except:
-        continue
-
-with open('data/new_train.en', 'w') as fp:
-    fp.write(''.join(new_en))
-with open('data/new_train.vi', 'w') as fp:
-    fp.write(''.join(new_vi))
+print(tokenizer.tokenize(s))
