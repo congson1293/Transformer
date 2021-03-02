@@ -15,10 +15,10 @@ ner = en_core_web_sm.load()
 ner_tag = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT',
            'WORK_OF_ART', 'LANGUAGE', 'EVENT', 'LAW']
 
-max_vocab_size_trg = 15000
-max_seq_len_src = 75
-max_seq_len_trg = 75
-min_freq = 3
+max_vocab_size_trg = 25000
+max_seq_len_src = 100
+max_seq_len_trg = 100
+min_freq = 1
 
 
 def remove_punc(words):
