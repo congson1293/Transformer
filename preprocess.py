@@ -5,10 +5,15 @@ import joblib as pickle
 from transformers import *
 
 from vocabulary import Vocabulary
+import en_core_web_sm
 
 import html
 
 src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
+ner = en_core_web_sm.load()
+
+ner_tag = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT',
+           'WORK_OF_ART', 'LANGUAGE', 'EVENT', 'LAW']
 
 max_vocab_size_trg = 15000
 max_seq_len_src = 75
@@ -22,7 +27,7 @@ def remove_punc(words):
     result = list(filter(lambda w: len(w) > 0, result))
     return result
 
-def load_data_from_file(data_file, build_vocab=False, min_freq=1, max_vocab_size=5000):
+def load_data_from_file(data_file):
     global src_lang_model, trg_lang_model
     print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
@@ -31,14 +36,22 @@ def load_data_from_file(data_file, build_vocab=False, min_freq=1, max_vocab_size
             data.append(html.unescape(text.strip()))
             print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
         print('')
-        data = [remove_punc(tok.split()) for tok in data]
-        if build_vocab:
-            vocab = Vocabulary()
-            vocab.build_vocab(data, lower=True, min_freq=min_freq,
-                              max_vocab_size=max_vocab_size)
-            return data, vocab
-        else:
-            return data
+        return data
+
+def encode_ner(src, trg):
+    global ner, ner_tag
+    new_src, new_trg = [], []
+    for i, s in enumerate(src):
+        doc = ner(s)
+        for X in doc.ents:
+            if not X.label_ in ner_tag:
+                continue
+            ss = s.replace(X.text, X.label_)
+            new_src.append(ss)
+            t = trg[i].replace(X.text, X.label_)
+            new_trg.append(t)
+        print(f'\rencode ner for sentence {i+1}', end='', flush=True)
+    return new_src, new_trg
 
 def encode_trg_data(data, vocab, max_seq_len):
     result = []
@@ -75,27 +88,28 @@ def encode_src_data(data, max_seq_len):
             print(i)
     return result
 
+train = {}
 src_data_train = load_data_from_file('data/train.en')
-trg_data_train, trg_vocab = load_data_from_file('data/train.vi',
-                                                build_vocab=True, min_freq=min_freq,
-                                                max_vocab_size=max_vocab_size_trg)
-train = {'src': src_data_train, 'trg': trg_data_train}
-train['src'] = encode_src_data(train['src'], max_seq_len_src)
-train['trg'] = encode_trg_data(train['trg'], trg_vocab, max_seq_len_trg)
+trg_data_train = load_data_from_file('data/train.vi')
+src_data_train, trg_data_train = encode_ner(src_data_train, trg_data_train)
+trg_vocab = Vocabulary()
+trg_vocab.build_vocab(trg_data_train, lower=True, min_freq=min_freq, max_vocab_size=max_vocab_size_trg)
+train['src'] = encode_src_data(src_data_train, max_seq_len_src)
+train['trg'] = encode_trg_data(trg_data_train, trg_vocab, max_seq_len_trg)
 
+val = {}
 src_data_val = load_data_from_file('data/tst2012.en')
 trg_data_val = load_data_from_file('data/tst2012.vi')
-val = {'src': src_data_val, 'trg': trg_data_val}
-# val = filter_data_with_lenght(val)
-val['src'] = encode_src_data(val['src'], max_seq_len_src)
-val['trg'] = encode_trg_data(val['trg'], trg_vocab, max_seq_len_trg)
+src_data_val, trg_data_val = encode_ner(src_data_val, trg_data_val)
+val['src'] = encode_src_data(src_data_val, max_seq_len_src)
+val['trg'] = encode_trg_data(trg_data_val, trg_vocab, max_seq_len_trg)
 
+test = {}
 src_data_test = load_data_from_file('data/tst2013.en')
 trg_data_test = load_data_from_file('data/tst2013.vi')
-test = {'src': src_data_test, 'trg': trg_data_test}
-# val = filter_data_with_lenght(val)
-test['src'] = encode_src_data(test['src'], max_seq_len_src)
-test['trg'] = encode_trg_data(test['trg'], trg_vocab, max_seq_len_trg)
+src_data_test, trg_data_test = encode_ner(src_data_test, trg_data_test)
+test['src'] = encode_src_data(src_data_test, max_seq_len_src)
+test['trg'] = encode_trg_data(trg_data_test, trg_vocab, max_seq_len_trg)
 
 data = {'vocab': {'trg': trg_vocab},
         'train': train,
