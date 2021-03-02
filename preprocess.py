@@ -112,7 +112,7 @@ src_data_test, trg_data_test = encode_ner(src_data_test, trg_data_test)
 test['src'] = encode_src_data(src_data_test, max_seq_len_src)
 test['trg'] = encode_trg_data(trg_data_test, trg_vocab, max_seq_len_trg)
 
-data = {'vocab': {'trg': trg_vocab},
+data = {'trg_vocab': trg_vocab,
         'train': train,
         'valid': val,
         'test': test,

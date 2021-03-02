@@ -101,8 +101,7 @@ def main():
     opt.max_src_len = settings.max_src_len
     opt.max_trg_len = settings.max_trg_len
 
-    vocab = pickle.load('models/vocab.pkl')
-    trg_vocab = vocab['trg']
+    trg_vocab = pickle.load('models/trg_vocab.pkl')
 
     model = Transformer(trg_vocab.vocab_size, settings.d_model,
                         settings.n_layers, settings.heads, settings.dropout).to(opt.device)
