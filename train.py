@@ -184,11 +184,10 @@ def main():
     data = pickle.load('data/m30k_deen_shr.pkl')
 
     vocab_src = RobertaTokenizer.from_pretrained('roberta-base')
-    vocab_trg = data['vocab']['trg']
+    vocab_trg = data['trg_vocab']
 
-    vocab = {'src': vocab_src, 'trg': vocab_trg}
     utils.mkdir('models')
-    pickle.dump(vocab, 'models/vocab.pkl')
+    pickle.dump(vocab_trg, 'models/trg_vocab.pkl')
 
     opt.src_pad = vocab_src.pad_token_id
     opt.trg_pad = vocab_trg.pad_idx
@@ -235,7 +234,7 @@ def main():
 def prepare_dataloaders(opt, data):
     batch_size = opt.batch_size
 
-    opt.trg_vocab_size = data['vocab']['trg'].vocab_size
+    opt.trg_vocab_size = data['trg_vocab'].vocab_size
 
     train_inputs = torch.tensor(data['train']['src'])
     valid_inputs = torch.tensor(data['valid']['src'])
