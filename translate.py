@@ -8,9 +8,12 @@ import re
 import spacy
 from vocabulary import Vocabulary
 from transformers import RobertaTokenizer
-
+import en_core_web_sm
 
 src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
+ner = en_core_web_sm.load()
+ner_tag = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT',
+           'WORK_OF_ART', 'LANGUAGE', 'EVENT', 'LAW']
 
 def multiple_replace(dict, text):
   # Create a regular expression  from the dictionary keys
@@ -25,7 +28,12 @@ def remove_punc(sen):
     return result
 
 def preprocess_input(s):
-    sen = remove_punc(s)
+    doc = ner(s)
+    sen = s
+    for X in doc.ents:
+        if not X.label_ in ner_tag:
+            continue
+        sen = sen.replace(X.text, X.label_)
     return sen
 
 def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
@@ -47,13 +55,13 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
 
     return  multiple_replace({' ?' : '?',' !':'!',' .':'.','\' ':'\'',' ,':','}, sentence)
 
-def translate(text, opt, model, src_vocab, trb_vocab):
+def translate(text, opt, model, src_vocab, trg_vocab):
     sentences = text.lower().split('.')
     sentences = list(filter(lambda s: len(s) > 0, sentences))
     translated = []
 
     for sentence in sentences:
-        translated.append(translate_sentence(sentence, model, opt, src_vocab, trb_vocab).capitalize())
+        translated.append(translate_sentence(sentence, model, opt, src_vocab, trg_vocab).capitalize())
 
     return (' '.join(translated))
 

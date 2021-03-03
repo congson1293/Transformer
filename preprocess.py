@@ -58,7 +58,7 @@ def encode_trg_data(data, vocab, max_seq_len):
     result = []
     for s in data:
         ss = [vocab.bos_idx]
-        for w in s:
+        for w in s.split():
             try:
                 idx = vocab.stoi[w.lower()]
             except:
