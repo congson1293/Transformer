@@ -30,16 +30,32 @@ def remove_punc(sen):
 def preprocess_input(s):
     doc = ner(s)
     sen = s
+    entities = {n:[] for n in ner_tag}
     for X in doc.ents:
         if not X.label_ in ner_tag:
             continue
         sen = sen.replace(X.text, X.label_)
-    return sen
+        entities[X.label_].append(X.text)
+    return sen, entities
+
+def restore_entity(s, entities):
+    global ner_tag
+    words = s.split()
+    result = []
+    for w in words:
+        try:
+            ww = w.upper()
+            if ww in ner_tag:
+                result.append(entities[ww].pop())
+            else:
+                result.append(w)
+        except:
+            result.append(w)
 
 def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
     global src_lang_model
 
-    s = preprocess_input(sentence)
+    s, entities = preprocess_input(sentence)
 
     indices = src_lang_model.encode(s, add_special_tokens=False)
     indices = indices[:opt.max_src_len - 2]

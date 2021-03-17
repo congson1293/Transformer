@@ -92,7 +92,7 @@ def encode_src_data(data, max_seq_len):
 train = {}
 src_data_train = load_data_from_file('data/train.en')
 trg_data_train = load_data_from_file('data/train.vi')
-src_data_train, trg_data_train = encode_ner(src_data_train, trg_data_train)
+# src_data_train, trg_data_train = encode_ner(src_data_train, trg_data_train)
 trg_vocab = Vocabulary()
 trg_vocab.build_vocab(trg_data_train, lower=True, min_freq=min_freq, max_vocab_size=max_vocab_size_trg)
 train['src'] = encode_src_data(src_data_train, max_seq_len_src)
@@ -101,14 +101,14 @@ train['trg'] = encode_trg_data(trg_data_train, trg_vocab, max_seq_len_trg)
 val = {}
 src_data_val = load_data_from_file('data/tst2012.en')
 trg_data_val = load_data_from_file('data/tst2012.vi')
-src_data_val, trg_data_val = encode_ner(src_data_val, trg_data_val)
+# src_data_val, trg_data_val = encode_ner(src_data_val, trg_data_val)
 val['src'] = encode_src_data(src_data_val, max_seq_len_src)
 val['trg'] = encode_trg_data(trg_data_val, trg_vocab, max_seq_len_trg)
 
 test = {}
 src_data_test = load_data_from_file('data/tst2013.en')
 trg_data_test = load_data_from_file('data/tst2013.vi')
-src_data_test, trg_data_test = encode_ner(src_data_test, trg_data_test)
+# src_data_test, trg_data_test = encode_ner(src_data_test, trg_data_test)
 test['src'] = encode_src_data(src_data_test, max_seq_len_src)
 test['trg'] = encode_trg_data(trg_data_test, trg_vocab, max_seq_len_trg)
 
