@@ -79,7 +79,7 @@ def translate(text, opt, model, src_vocab, trg_vocab):
     translated = []
 
     for sentence in sentences:
-        translated.append(translate_sentence(sentence, model, opt, src_vocab, trg_vocab)
+        translated.append(translate_sentence(sentence, model, opt, src_vocab, trg_vocab))
 
     return (' '.join(translated))
 
