@@ -46,7 +46,7 @@ def restore_entity(s, entities):
         try:
             ww = w.upper()
             if ww in ner_tag:
-                result.append(entities[ww].pop())
+                result.append(entities[ww].pop().capitalize())
             else:
                 result.append(w)
         except:
@@ -79,7 +79,7 @@ def translate(text, opt, model, src_vocab, trg_vocab):
     translated = []
 
     for sentence in sentences:
-        translated.append(translate_sentence(sentence, model, opt, src_vocab, trg_vocab).capitalize())
+        translated.append(translate_sentence(sentence, model, opt, src_vocab, trg_vocab)
 
     return (' '.join(translated))
 
