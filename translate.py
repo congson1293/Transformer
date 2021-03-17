@@ -51,6 +51,7 @@ def restore_entity(s, entities):
                 result.append(w)
         except:
             result.append(w)
+    return ' '.join(result)
 
 def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
     global src_lang_model
@@ -68,6 +69,7 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
     sen = sen.to(opt.device)
     
     sentence = beam_search(sen, model, src_vocab, trg_vocab, opt)
+    sentence = restore_entity(sentence, entities)
 
     return  multiple_replace({' ?' : '?',' !':'!',' .':'.','\' ':'\'',' ,':','}, sentence)
 
