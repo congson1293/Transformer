@@ -65,13 +65,11 @@ class MultiHeadAttention(nn.Module):
         k = k.transpose(1,2)
         q = q.transpose(1,2)
         v = v.transpose(1,2)
-        
 
         # calculate attention using function we will define next
         scores = attention(q, k, v, self.d_k, mask, self.dropout)
         # concatenate heads and put through final linear layer
-        concat = scores.transpose(1,2).contiguous()\
-        .view(bs, -1, self.d_model)
+        concat = scores.transpose(1,2).contiguous().view(bs, -1, self.d_model)
         output = self.out(concat)
     
         return output
