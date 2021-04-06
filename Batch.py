@@ -3,10 +3,10 @@ from torchtext import data
 import numpy as np
 from torch.autograd import Variable
 
-
+# note: mask=true meaning not apply mask otherwise apply mask
 def nopeak_mask(size, opt):
     np_mask = np.triu(np.ones((1, size, size)), k=1).astype('uint8')
-    np_mask =  Variable(torch.from_numpy(np_mask) == 0)
+    np_mask = Variable(torch.from_numpy(np_mask) == 0)
     np_mask = np_mask.to(opt.device)
     return np_mask
 
