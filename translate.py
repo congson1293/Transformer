@@ -10,7 +10,7 @@ from vocabulary import Vocabulary
 from transformers import RobertaTokenizer
 import en_core_web_sm
 
-src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
+src_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
 ner = en_core_web_sm.load()
 ner_tag = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT',
            'WORK_OF_ART', 'LANGUAGE', 'EVENT', 'LAW']
@@ -54,16 +54,16 @@ def restore_entity(s, entities):
     return ' '.join(result)
 
 def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
-    global src_lang_model
+    global src_tokenizer
 
     s, entities = preprocess_input(sentence)
 
-    indices = src_lang_model.encode(s, add_special_tokens=False)
+    indices = src_tokenizer.encode(s, add_special_tokens=False)
     indices = indices[:opt.max_src_len - 2]
-    indices.insert(0, src_lang_model.bos_token_id)
-    indices.append(src_lang_model.eos_token_id)
+    indices.insert(0, src_tokenizer.bos_token_id)
+    indices.append(src_tokenizer.eos_token_id)
     gap = opt.max_src_len - len(indices)
-    indices += [src_lang_model.pad_token_id] * gap
+    indices += [src_tokenizer.pad_token_id] * gap
 
     sen = Variable(torch.LongTensor([indices]))
     sen = sen.to(opt.device)
@@ -92,7 +92,7 @@ def cal_bleu(opt, model, trb_vocab):
         result = re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', result)
         return result.lower()
 
-    global src_lang_model
+    global src_tokenizer
 
     bleu = []
     print('calculate bleu score ...')
@@ -102,14 +102,14 @@ def cal_bleu(opt, model, trb_vocab):
     with open('data/tst2013.en', 'r') as fp:
         for i, sen in enumerate(fp):
             trg_sen = trg_sentences[i]
-            pred_sen = remove_punc(translate(sen, opt, model, src_lang_model, trb_vocab))
+            pred_sen = remove_punc(translate(sen, opt, model, src_tokenizer, trb_vocab))
             bleu.append(sentence_bleu([trg_sen], pred_sen))
             print('\rcalculated bleu score of sentence {}-th ...'.format(i+1), end='', flush=True)
     print('\nCumulative bleu score 4-gram = %.4f' % (sum(bleu)/len(bleu)))
 
 
 def main():
-    global src_lang_model
+    global src_tokenizer
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-beam_size', type=int, default=3)
@@ -138,7 +138,7 @@ def main():
     while True:
         text = input("Enter a sentence to translate (type 'q' to quit):\n")
         # text = 'Mehrere Männer mit Schutzhelmen bedienen ein Antriebsradsystem.'
-        phrase = translate(text, opt, model, src_lang_model, trg_vocab)
+        phrase = translate(text, opt, model, src_tokenizer, trg_vocab)
         print('> '+ phrase + '\n')
 
 if __name__ == '__main__':

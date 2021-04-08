@@ -183,13 +183,13 @@ def main():
 
     data = pickle.load('data/m30k_deen_shr.pkl')
 
-    vocab_src = RobertaTokenizer.from_pretrained('roberta-base')
+    src_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
     vocab_trg = data['trg_vocab']
 
     utils.mkdir('models')
     pickle.dump(vocab_trg, 'models/trg_vocab.pkl')
 
-    opt.src_pad = vocab_src.pad_token_id
+    opt.src_pad = src_tokenizer.pad_token_id
     opt.trg_pad = vocab_trg.pad_idx
 
     opt.max_src_len = data['max_len']['src']

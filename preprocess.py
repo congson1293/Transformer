@@ -8,7 +8,7 @@ import en_core_web_sm
 
 import html
 
-src_lang_model = RobertaTokenizer.from_pretrained('roberta-base')
+src_tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
 ner = en_core_web_sm.load()
 
 ner_tag = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT',
@@ -27,7 +27,7 @@ def remove_punc(words):
     return result
 
 def load_data_from_file(data_file):
-    global src_lang_model, trg_lang_model
+    global src_tokenizer, trg_lang_model
     print(f'loading data from {data_file} ...')
     with open(data_file) as fp:
         data = []
@@ -73,16 +73,17 @@ def encode_trg_data(data, vocab, max_seq_len):
     return np.array(result)
 
 def encode_src_data(data, max_seq_len):
-    global src_lang_model
+    global src_tokenizer
     result = []
     for i, s in enumerate(data):
         try:
-            ss = src_lang_model.encode(s, add_special_tokens=False)
+            ss = src_tokenizer.encode(s, add_special_tokens=False,
+                                      max_length=src_tokenizer.model_max_length)
             x = ss[:max_seq_len-2]
-            x.insert(0, src_lang_model.bos_token_id)
-            x.append(src_lang_model.eos_token_id)
+            x.insert(0, src_tokenizer.bos_token_id)
+            x.append(src_tokenizer.eos_token_id)
             gap = max_seq_len - len(x)
-            x += [src_lang_model.pad_token_id] * gap
+            x += [src_tokenizer.pad_token_id] * gap
             result.append(x)
         except:
             print(i)
