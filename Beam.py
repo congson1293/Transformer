@@ -18,8 +18,7 @@ def init_vars(src, model, src_vocab, trg_vocab, opt):
     probs, ix = out[:, -1].data.topk(opt.beam_size)
     log_scores = torch.Tensor([math.log(prob) for prob in probs.data[0]]).unsqueeze(0)
 
-    # outputs = torch.zeros(opt.beam_size, opt.max_trg_len).long().to(opt.device)
-    outputs = torch.full((opt.beam_size, opt.max_trg_len), trg_vocab.pad_idx).long().to(opt.device)
+    outputs = torch.zeros(opt.beam_size, opt.max_trg_len).long().to(opt.device)
     outputs = outputs.to(opt.device)
     outputs[:, 0] = init_tok
     outputs[:, 1] = ix[0]
