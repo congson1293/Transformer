@@ -53,7 +53,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
     model.eval()
     outputs, e_outputs, log_scores = init_vars(src, model, src_vocab, trg_vocab, opt)
     eos_token = trg_vocab.eos_idx
-    src_mask = (src != src_vocab.pad_idx).unsqueeze(-2)
+    src_mask = (src != src_vocab.pad_idx).unsqueeze(-2).to(opt.device)
     ind = None
     for i in range(2, opt.max_trg_len):
     
