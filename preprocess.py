@@ -35,7 +35,7 @@ def load_data_from_file(data_file):
             data.append(html.unescape(text.strip()))
             print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
         print('')
-        return data
+    return data
 
 def encode_ner(src, trg):
     global ner, ner_tag
