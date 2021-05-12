@@ -27,7 +27,7 @@ def load_data_from_file(data_file, build_vocab=False, min_freq=1, max_vocab_size
     with open(data_file) as fp:
         data = []
         for i, text in enumerate(fp):
-            data.append(html.unescape(text.strip()))
+            data.append(html.unescape(text.strip()).lower())
             print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
         print('')
         data = [remove_punc(tok.split()) for tok in data]
