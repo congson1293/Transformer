@@ -27,11 +27,11 @@ class Encoder(BertPreTrainedModel):
                                # token_type_ids=token_type_ids,
                                position_ids=position_ids,
                                head_mask=head_mask)  # [batch_size, max_seq_len, 768]
-        # ouputs[0]: last hidden layer
-        # outputs[1]: unknow :(
-        # ouputs[2]: all hidden layers
+        # outputs[0]: last hidden layer
+        # outputs[1]: unknown :(
+        # outputs[2]: all hidden layers
         # get [CLS] of 4 last hidden layer
-        # [:,0,:] = [batch_size, timestep_0, hidden_size]
+        # [:,0,:] = [batch_size, time_step_0, hidden_size]
         cls_output = outputs[0]
         return cls_output
     
