@@ -13,7 +13,7 @@ def init_vars(src, model, src_vocab, trg_vocab, opt):
     
     trg_mask = nopeak_mask(1, opt).to(opt.device)
     
-    out = model.out(model.decoder(outputs, e_output, src_mask, trg_mask))
+    out = model.out(model.decoder(outputs, e_output, src_mask, trg_mask, opt.device))
     
     probs, ix = out[:, -1].data.topk(opt.beam_size)
     log_scores = torch.Tensor([math.log(prob) for prob in probs.data[0]]).unsqueeze(0)
@@ -56,7 +56,7 @@ def beam_search(src, model, src_vocab, trg_vocab, opt):
     
         trg_mask = nopeak_mask(i, opt)
 
-        out = model.out(model.decoder(outputs[:,:i], e_outputs, src_mask, trg_mask))
+        out = model.out(model.decoder(outputs[:,:i], e_outputs, src_mask, trg_mask, opt.device))
     
         outputs, log_scores = k_best_outputs(outputs, out, log_scores, i, opt.beam_size)
         ones = (outputs == eos_token).nonzero(as_tuple=True) # Occurrences of end symbols for all input sentences.

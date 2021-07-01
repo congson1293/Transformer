@@ -3,6 +3,7 @@ from transformers import *
 import torch.nn as nn 
 from Layers import EncoderLayer, DecoderLayer
 from Embed import Embedder, PositionalEncoder
+import phoBert_embed
 from Sublayers import Norm
 import torch.nn.functional as F
 import copy
@@ -36,15 +37,16 @@ class Encoder(BertPreTrainedModel):
         return cls_output
     
 class Decoder(nn.Module):
-    def __init__(self, vocab_size, d_model, N, heads, dropout):
+    def __init__(self, d_model, N, heads, dropout):
         super().__init__()
         self.N = N
-        self.embed = Embedder(vocab_size, d_model)
+        # self.embed = Embedder(vocab_size, d_model)
         self.pe = PositionalEncoder(d_model, dropout=dropout)
         self.layers = get_clones(DecoderLayer(d_model, heads, dropout), N)
         self.norm = Norm(d_model)
-    def forward(self, trg, e_outputs, src_mask, trg_mask):
-        x = self.embed(trg)
+    def forward(self, trg, e_outputs, src_mask, trg_mask, device):
+        # x = self.embed(trg)
+        x = phoBert_embed.build_sample_tensor(trg, device=device)
         x = self.pe(x)
         for i in range(self.N):
             x = self.layers[i](x, e_outputs, src_mask, trg_mask)
@@ -54,12 +56,12 @@ class Transformer(nn.Module):
     def __init__(self, trg_vocab_size, d_model, N, heads, dropout):
         super().__init__()
         self.encoder = Encoder.from_pretrained('roberta-base', output_hidden_states=True)
-        self.decoder = Decoder(trg_vocab_size, d_model, N, heads, dropout)
+        self.decoder = Decoder(d_model, N, heads, dropout)
         self.out = nn.Linear(d_model, trg_vocab_size)
-    def forward(self, src, trg, src_mask, trg_mask):
+    def forward(self, src, trg, src_mask, trg_mask, device):
         e_outputs = self.encoder(src, src_mask) # [batch_size, max_len+1, d_model]
         #print("DECODER")
-        d_output = self.decoder(trg, e_outputs, src_mask.unsqueeze(-2), trg_mask)
+        d_output = self.decoder(trg, e_outputs, src_mask.unsqueeze(-2), trg_mask, device)
         output = self.out(d_output)
         output = F.log_softmax(output, dim=-1)
         return output
