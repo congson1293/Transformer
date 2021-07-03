@@ -10,6 +10,7 @@ import utils
 from vocabulary import Vocabulary
 from transformers import RobertaTokenizer, AdamW, get_linear_schedule_with_warmup
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
+import phoBert_embed
 
 
 def cal_performance(pred, trg_output, trg_pad_idx):
@@ -188,6 +189,8 @@ def main():
 
     utils.mkdir('models')
     pickle.dump(vocab_trg, 'models/trg_vocab.pkl')
+
+    phoBert_embed.get_vocab_embed(vocab_trg)
 
     opt.src_pad = src_tokenizer.pad_token_id
     opt.trg_pad = vocab_trg.pad_idx
