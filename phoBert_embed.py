@@ -26,8 +26,8 @@ def build_sample_tensor(input_tensor, device='cuda'):
     result = torch.zeros((input_tensor.shape[0], input_tensor.shape[1], 768))
     for i, row in enumerate(input_tensor):
         for j, idx in enumerate(row):
-            text = embed_vocab[idx.item()]
-            result[i, j] = get_word_embed(text)
+            emb = embed_vocab[idx.item()]
+            result[i, j] = emb
     return result.to(device)
 
 def get_vocab_embed(vocab):
