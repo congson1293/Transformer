@@ -91,7 +91,7 @@ def eval_epoch(model, valid_data, opt):
             trg_output = trg[:, 1:].contiguous().view(-1)
 
             src_mask, trg_mask = create_masks(src, trg_input, opt)
-            preds = model(src, trg_input, src_mask, trg_mask)
+            preds = model(src, trg_input, src_mask, trg_mask, opt.device)
             preds = preds.view(-1, preds.size(-1))
 
             n_correct, n_word = cal_performance(preds, trg_output, opt.trg_pad)
