@@ -33,11 +33,12 @@ def build_sample_tensor(input_tensor, device='cuda'):
 def get_vocab_embed(vocab):
     global embed_vocab
     if embed_vocab is None:
-        print('get vocab word embedding...')
         embed_vocab = {}
         for i, w in vocab.itos.items():
             v = get_word_embed(w)
             embed_vocab.update({i: v})
+            print(f'\rgot vocab word embedding of token {i+1}th...', end='', flush=True)
+        print('')
         joblib.dump(embed_vocab, 'models/embed_vocab.pkl')
 
 if __name__ == '__main__':
