@@ -6,7 +6,7 @@ from Embed import Embedder, PositionalEncoder
 from Sublayers import Norm
 import torch.nn.functional as F
 import copy
-from typing import Optional, Union
+
 
 def get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])

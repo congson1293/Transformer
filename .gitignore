@@ -109,3 +109,5 @@ models/
 *.zip
 .idea/
 data/m30k_deen_shr.pkl
+data/ted2020.tsv
+data/ted2020.tsv.gz
