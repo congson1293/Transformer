@@ -24,8 +24,8 @@ def cal_performance(pred, trg_output, trg_pad_idx):
 
     return n_correct, n_word
 
-def train_epoch(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, opt, epoch, start_time):
 
+def train_epoch(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, opt, epoch, start_time):
     model.train()
 
     total_loss, n_word_total, n_word_correct = 0, 0, 0
@@ -70,20 +70,20 @@ def train_epoch(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, 
             p = int(100 * (i + 1) / len(train_data))
             avg_loss = total_loss / (i + 1)
             print("   %dm: epoch %d [%s%s]  %d%%  loss = %.3f" % \
-                  ((time.time() - start_time) // 60, epoch + 1, "".join('#' * (p // 5)), "".join(' ' * (20 - (p // 5))), p,
+                  ((time.time() - start_time) // 60, epoch + 1, "".join('#' * (p // 5)), "".join(' ' * (20 - (p // 5))),
+                   p,
                    avg_loss))
 
     return total_loss, n_word_total, n_word_correct
 
-def eval_epoch(model, valid_data, opt):
 
+def eval_epoch(model, valid_data, opt):
     model.eval()
 
     total_loss, n_word_total, n_word_correct = 0, 0, 0
 
     with torch.no_grad():
         for i, batch in enumerate(valid_data):
-
             src = batch[0].to(opt.device)
             trg = batch[1].to(opt.device)
 
@@ -104,8 +104,8 @@ def eval_epoch(model, valid_data, opt):
 
     return total_loss, n_word_total, n_word_correct
 
+
 def train(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, valid_data, opt):
-    
     print("training model...")
     start = time.time()
 
@@ -115,7 +115,8 @@ def train(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_
 
     for epoch in range(opt.epochs):
 
-        total_train_loss, n_word_total, n_word_correct = train_epoch(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_data, opt, epoch, start)
+        total_train_loss, n_word_total, n_word_correct = train_epoch(model, optimizer_encoder, scheduler_encoder,
+                                                                     optimizer_decoder, train_data, opt, epoch, start)
 
         train_accuracy = n_word_correct / n_word_total
         avg_train_loss = total_train_loss / len(train_data)
@@ -136,13 +137,14 @@ def train(model, optimizer_encoder, scheduler_encoder, optimizer_decoder, train_
             n_patience += 1
         pre_valid_loss = avg_valid_loss
 
-        print("   %dm: epoch %d [%s%s]  %d%%\ntrain_loss = %.3f  train_acc=%.3f\nvalid_loss = %.3f  valid_acc = %.3f" %\
-        ((time.time() - start)//60, epoch + 1, "".join('#'*(100//5)), "".join(' '*(20-(100//5))), 100,
-         avg_train_loss, train_accuracy, avg_valid_loss, valid_accuracy))
+        print("   %dm: epoch %d [%s%s]  %d%%\ntrain_loss = %.3f  train_acc=%.3f\nvalid_loss = %.3f  valid_acc = %.3f" % \
+              ((time.time() - start) // 60, epoch + 1, "".join('#' * (100 // 5)), "".join(' ' * (20 - (100 // 5))), 100,
+               avg_train_loss, train_accuracy, avg_valid_loss, valid_accuracy))
 
         if opt.patience > 0 and n_patience >= opt.patience:
             print('early stopping...')
             break
+
 
 def test(model, test_data, opt):
     print('testing...')
@@ -153,7 +155,6 @@ def test(model, test_data, opt):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-no_cuda', action='store_true')
     parser.add_argument('-SGDR', action='store_true')
@@ -260,8 +261,8 @@ def prepare_dataloaders(opt, data):
 
     return train_data_loader, valid_data_loader, test_data_loader
 
-
-
     # for asking about further training use while true loop, and return
+
+
 if __name__ == "__main__":
     main()

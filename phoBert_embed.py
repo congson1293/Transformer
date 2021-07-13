@@ -12,14 +12,16 @@ try:
 except:
     embed_vocab = None
 
+
 def get_word_embed(word):
     global phobert, tokenizer
 
     input_ids = torch.tensor([tokenizer.encode(word)])
     with torch.no_grad():
         features = phobert(input_ids)  # Models outputs are now tuples
-    cls = features[0][0][0] # cls token
+    cls = features[0][0][0]  # cls token
     return cls
+
 
 def build_sample_tensor(input_tensor, device='cuda'):
     global embed_vocab
@@ -30,6 +32,7 @@ def build_sample_tensor(input_tensor, device='cuda'):
             result[i, j] = emb
     return result.to(device)
 
+
 def get_vocab_embed(vocab):
     global embed_vocab
     if embed_vocab is None:
@@ -37,9 +40,10 @@ def get_vocab_embed(vocab):
         for i, w in vocab.itos.items():
             v = get_word_embed(w)
             embed_vocab.update({i: v})
-            print(f'\rgot vocab word embedding of token {i+1}th...', end='', flush=True)
+            print(f'\rgot vocab word embedding of token {i + 1}th...', end='', flush=True)
         print('')
         joblib.dump(embed_vocab, 'models/embed_vocab.pkl')
+
 
 if __name__ == '__main__':
     x = torch.LongTensor([[100, 200, 5]])
