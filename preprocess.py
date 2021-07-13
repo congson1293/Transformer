@@ -26,6 +26,7 @@ def remove_punc(words):
     result = list(filter(lambda w: len(w) > 0, result))
     return result
 
+
 def load_data_from_file(data_file):
     global src_tokenizer, trg_lang_model
     print(f'loading data from {data_file} ...')
@@ -33,9 +34,10 @@ def load_data_from_file(data_file):
         data = []
         for i, text in enumerate(fp):
             data.append(html.unescape(text.strip()).lower())
-            print(f'\rprocessed {i+1} sentences ...', end='', flush=True)
+            print(f'\rprocessed {i + 1} sentences ...', end='', flush=True)
         print('')
     return data
+
 
 def encode_ner(src, trg):
     global ner, ner_tag
@@ -50,8 +52,9 @@ def encode_ner(src, trg):
             t = t.replace(X.text, X.label_)
         new_src.append(s)
         new_trg.append(t)
-        print(f'\rencode ner for sentence {i+1}', end='', flush=True)
+        print(f'\rencode ner for sentence {i + 1}', end='', flush=True)
     return new_src, new_trg
+
 
 def encode_trg_data(data, vocab, max_seq_len):
     result = []
@@ -72,6 +75,7 @@ def encode_trg_data(data, vocab, max_seq_len):
         result.append(ss)
     return np.array(result)
 
+
 def encode_src_data(data, max_seq_len):
     global src_tokenizer
     result = []
@@ -79,7 +83,7 @@ def encode_src_data(data, max_seq_len):
         try:
             ss = src_tokenizer.encode(s, add_special_tokens=False,
                                       max_length=src_tokenizer.model_max_length)
-            x = ss[:max_seq_len-2]
+            x = ss[:max_seq_len - 2]
             x.insert(0, src_tokenizer.bos_token_id)
             x.append(src_tokenizer.eos_token_id)
             gap = max_seq_len - len(x)
@@ -88,6 +92,7 @@ def encode_src_data(data, max_seq_len):
         except:
             print(i)
     return result
+
 
 train = {}
 src_data_train = load_data_from_file('data/train.en')

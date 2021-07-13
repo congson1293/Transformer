@@ -15,28 +15,32 @@ ner = en_core_web_sm.load()
 ner_tag = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT',
            'WORK_OF_ART', 'LANGUAGE', 'EVENT', 'LAW']
 
-def multiple_replace(dict, text):
-  # Create a regular expression  from the dictionary keys
-  regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
 
-  # For each match, look-up corresponding value in dictionary
-  return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+def multiple_replace(dict, text):
+    # Create a regular expression  from the dictionary keys
+    regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+
+    # For each match, look-up corresponding value in dictionary
+    return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+
 
 def remove_punc(sen):
     result = re.sub('[,.!;:\"\'?<>{}\[\]()]', '', sen)
     result = re.sub('(\d+,\d+\w*)|(\d+\.\d+\w*)|(\w*\d+\w*)', 'number', result)
     return result
 
+
 def preprocess_input(s):
     doc = ner(s)
     sen = s
-    entities = {n:[] for n in ner_tag}
+    entities = {n: [] for n in ner_tag}
     for X in doc.ents:
         if not X.label_ in ner_tag:
             continue
         sen = sen.replace(X.text, X.label_)
         entities[X.label_].append(X.text)
     return sen, entities
+
 
 def restore_entity(s, entities):
     global ner_tag
@@ -53,6 +57,7 @@ def restore_entity(s, entities):
             result.append(w)
     return ' '.join(result)
 
+
 def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
     global src_tokenizer
 
@@ -67,11 +72,12 @@ def translate_sentence(sentence, model, opt, src_vocab, trg_vocab):
 
     sen = Variable(torch.LongTensor([indices]))
     sen = sen.to(opt.device)
-    
+
     sentence = beam_search(sen, model, src_vocab, trg_vocab, opt)
     sentence = restore_entity(sentence, entities)
 
-    return  multiple_replace({' ?' : '?',' !':'!',' .':'.','\' ':'\'',' ,':','}, sentence)
+    return multiple_replace({' ?': '?', ' !': '!', ' .': '.', '\' ': '\'', ' ,': ','}, sentence)
+
 
 def translate(text, opt, model, src_vocab, trg_vocab):
     sentences = text.lower().split('.')
@@ -82,6 +88,7 @@ def translate(text, opt, model, src_vocab, trg_vocab):
         translated.append(translate_sentence(sentence, model, opt, src_vocab, trg_vocab))
 
     return (' '.join(translated))
+
 
 def cal_bleu(opt, model, trb_vocab):
     import re, html
@@ -104,8 +111,8 @@ def cal_bleu(opt, model, trb_vocab):
             trg_sen = trg_sentences[i]
             pred_sen = remove_punc(translate(sen, opt, model, src_tokenizer, trb_vocab))
             bleu.append(sentence_bleu([trg_sen], pred_sen))
-            print('\rcalculated bleu score of sentence {}-th ...'.format(i+1), end='', flush=True)
-    print('\nCumulative bleu score 4-gram = %.4f' % (sum(bleu)/len(bleu)))
+            print('\rcalculated bleu score of sentence {}-th ...'.format(i + 1), end='', flush=True)
+    print('\nCumulative bleu score 4-gram = %.4f' % (sum(bleu) / len(bleu)))
 
 
 def main():
@@ -139,7 +146,8 @@ def main():
         text = input("Enter a sentence to translate (type 'q' to quit):\n")
         # text = 'Mehrere Männer mit Schutzhelmen bedienen ein Antriebsradsystem.'
         phrase = translate(text, opt, model, src_tokenizer, trg_vocab)
-        print('> '+ phrase + '\n')
+        print('> ' + phrase + '\n')
+
 
 if __name__ == '__main__':
     main()

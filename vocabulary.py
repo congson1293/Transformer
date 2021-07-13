@@ -22,6 +22,7 @@ class Vocabulary():
     '''
     input: data is list sentence which sentence is list of word
     '''
+
     def build_vocab(self, sentences, lower=True, min_freq=1, max_vocab_size=5000):
         sens = [tok.split() for tok in sentences]
         words = list(itertools.chain.from_iterable(sens))
