@@ -71,7 +71,7 @@ class Transformer(nn.Module):
         return output
 
 
-def init_model(opt, trg_vocab_size, checkpoint=None):
+def init_model(opt, trg_vocab_size, checkpoint=None, embed_weight_decoder=None):
     assert opt.d_model % opt.heads == 0
     assert opt.dropout < 1
 
@@ -83,6 +83,8 @@ def init_model(opt, trg_vocab_size, checkpoint=None):
         if opt.device == 'cuda':
             torch.cuda.empty_cache()
     else:
+        if embed_weight_decoder is not None:
+            model.decoder.embed.init_from_pretrain(embed_weight_decoder)
         for p in model.decoder.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)

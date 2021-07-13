@@ -198,7 +198,10 @@ def main():
 
     train_data_loader, valid_data_loader, test_data_loader = prepare_dataloaders(opt, data)
 
-    model = init_model(opt, vocab_trg.vocab_size, checkpoint=checkpoint)
+    embed_weight_decoder = pickle.load('models/embed_weight_decoder.pkl')
+
+    model = init_model(opt, vocab_trg.vocab_size, checkpoint=checkpoint,
+                       embed_weight_decoder=embed_weight_decoder)
 
     # optimizer for encoder
     param_optimizer = list(model.encoder.named_parameters())

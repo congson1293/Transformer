@@ -13,6 +13,9 @@ class Embedder(nn.Module):
     def forward(self, x):
         return self.embed(x)
 
+    def init_from_pretrain(self, pretrained_weight):
+        self.embed.weight.data.copy_(torch.from_numpy(pretrained_weight))
+
 
 class PositionalEncoder(nn.Module):
     def __init__(self, d_model, max_seq_len=200, dropout=0.1):
