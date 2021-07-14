@@ -4,7 +4,7 @@ import joblib as pickle
 from transformers import *
 
 from vocabulary import Vocabulary
-import en_core_web_sm
+import en_core_web_sm # python -m spacy download en
 
 import html
 
