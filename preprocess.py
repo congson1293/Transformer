@@ -22,7 +22,7 @@ min_freq = 1
 
 def remove_punc(words):
     result = map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', w), words)
-    result = map(lambda w: re.sub('(\d+,\d+\w*)|(\d+\.\d+\w*)|(\w*\d+\w*)', 'number', w), result)
+    # result = map(lambda w: re.sub('(\d+,\d+\w*)|(\d+\.\d+\w*)|(\w*\d+\w*)', 'number', w), result)
     result = list(filter(lambda w: len(w) > 0, result))
     return result
 
@@ -33,7 +33,7 @@ def load_data_from_file(data_file):
     with open(data_file) as fp:
         data = []
         for i, text in enumerate(fp):
-            data.append(html.unescape(text.strip()).lower())
+            data.append(remove_punc(html.unescape(text.strip()).lower()))
             print(f'\rprocessed {i + 1} sentences ...', end='', flush=True)
         print('')
     return data
