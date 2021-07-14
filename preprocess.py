@@ -20,10 +20,11 @@ max_seq_len_trg = 100
 min_freq = 1
 
 
+normalize_special_mark = re.compile(u'(?P<special_mark>[\.,\(\)\[\]\{\};!?:“”\"\'/\<\>])')
+
 def remove_punc(words):
-    result = map(lambda w: re.sub('[,.!;:\"\'?<>{}\[\]()-]', '', w), words)
-    # result = map(lambda w: re.sub('(\d+,\d+\w*)|(\d+\.\d+\w*)|(\w*\d+\w*)', 'number', w), result)
-    result = list(filter(lambda w: len(w) > 0, result))
+    global normalize_special_mark
+    result = normalize_special_mark.sub(u' \g<special_mark> ', words).strip()
     return result
 
 
